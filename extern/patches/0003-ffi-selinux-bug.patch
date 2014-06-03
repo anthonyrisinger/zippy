@@ -1,0 +1,26 @@
+From 15c4b3a4c38b7dcc7d0c608bd6ed6a7874e02ffa Mon Sep 17 00:00:00 2001
+From: C Anthony Risinger <anthony.risinger@corvisa.com>
+Date: Mon, 17 Jun 2013 11:20:05 -0500
+Subject: [PATCH] ffi selinux bug
+
+Signed-off-by: C Anthony Risinger <anthony.risinger@corvisa.com>
+---
+ Modules/_ctypes/libffi/src/closures.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Modules/_ctypes/libffi/src/closures.c b/Modules/_ctypes/libffi/src/closures.c
+index 6298d6f..d551890 100644
+--- a/Modules/_ctypes/libffi/src/closures.c
++++ b/Modules/_ctypes/libffi/src/closures.c
+@@ -123,7 +123,7 @@
+ #include <sys/mman.h>
+ #define LACKS_SYS_MMAN_H 1
+ 
+-#if FFI_MMAP_EXEC_SELINUX
++#if 0
+ #include <sys/statfs.h>
+ #include <stdlib.h>
+ 
+-- 
+1.8.3
+

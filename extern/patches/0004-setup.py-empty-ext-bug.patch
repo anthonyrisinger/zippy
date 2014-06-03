@@ -1,0 +1,26 @@
+From 5c3847114bd4c005012a4fd358e201d92fae8872 Mon Sep 17 00:00:00 2001
+From: C Anthony Risinger <anthony.risinger@corvisa.com>
+Date: Mon, 17 Jun 2013 11:21:09 -0500
+Subject: [PATCH] setup.py empty ext bug
+
+Signed-off-by: C Anthony Risinger <anthony.risinger@corvisa.com>
+---
+ setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index c9204b6..b19353e 100644
+--- a/setup.py
++++ b/setup.py
+@@ -250,7 +250,7 @@ class PyBuildExt(build_ext):
+ 
+         build_ext.build_extensions(self)
+ 
+-        longest = max([len(e.name) for e in self.extensions])
++        longest = max([0]+[len(e.name) for e in self.extensions])
+         if self.failed:
+             longest = max(longest, max([len(name) for name in self.failed]))
+ 
+-- 
+1.8.3
+

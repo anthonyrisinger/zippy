@@ -1,0 +1,6 @@
+#!python -mzippy.activate
+""":"
+
+. /dev/stdin <<<"$(IFS=; RUN=$PWD/$BASH_SOURCE; ${RUN/#*\/\//\/})"
+
+":"""

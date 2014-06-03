@@ -1,0 +1,150 @@
+From b274d13dfd50778a59fbcefe52202275a794902f Mon Sep 17 00:00:00 2001
+From: C Anthony Risinger <anthony.risinger@corvisa.com>
+Date: Mon, 17 Jun 2013 10:48:37 -0500
+Subject: [PATCH] support -fvisibility=hidden
+
+Signed-off-by: C Anthony Risinger <anthony.risinger@corvisa.com>
+---
+ Include/pyport.h              | 30 +++++++++++++++---------------
+ Modules/_json.c               |  2 +-
+ Modules/cjkcodecs/cjkcodecs.h |  2 +-
+ Python/getargs.c              |  2 +-
+ setup.py                      |  2 +-
+ 5 files changed, 19 insertions(+), 19 deletions(-)
+
+diff --git a/Include/pyport.h b/Include/pyport.h
+index 85e852f..e8c80ec 100644
+--- a/Include/pyport.h
++++ b/Include/pyport.h
+@@ -759,14 +759,14 @@ extern int fdatasync(int);
+ #if defined(Py_ENABLE_SHARED) || defined(__CYGWIN__)
+ #       if defined(HAVE_DECLSPEC_DLL)
+ #               ifdef Py_BUILD_CORE
+-#                       define PyAPI_FUNC(RTYPE) __declspec(dllexport) RTYPE
+-#                       define PyAPI_DATA(RTYPE) extern __declspec(dllexport) RTYPE
++#                       define PyAPI_FUNC(RTYPE) __attribute__((visibility("default"))) __declspec(dllexport) RTYPE
++#                       define PyAPI_DATA(RTYPE) __attribute__((visibility("default"))) extern __declspec(dllexport) RTYPE
+         /* module init functions inside the core need no external linkage */
+         /* except for Cygwin to handle embedding (FIXME: BeOS too?) */
+ #                       if defined(__CYGWIN__)
+-#                               define PyMODINIT_FUNC __declspec(dllexport) void
++#                               define PyMODINIT_FUNC __attribute__((visibility("default"))) __declspec(dllexport) void
+ #                       else /* __CYGWIN__ */
+-#                               define PyMODINIT_FUNC void
++#                               define PyMODINIT_FUNC __attribute__((visibility("default"))) void
+ #                       endif /* __CYGWIN__ */
+ #               else /* Py_BUILD_CORE */
+         /* Building an extension module, or an embedded situation */
+@@ -775,14 +775,14 @@ extern int fdatasync(int);
+         /* failures similar to those described at the bottom of 4.1: */
+         /* http://docs.python.org/extending/windows.html#a-cookbook-approach */
+ #                       if !defined(__CYGWIN__)
+-#                               define PyAPI_FUNC(RTYPE) __declspec(dllimport) RTYPE
++#                               define PyAPI_FUNC(RTYPE) __attribute__((visibility("default"))) __declspec(dllimport) RTYPE
+ #                       endif /* !__CYGWIN__ */
+-#                       define PyAPI_DATA(RTYPE) extern __declspec(dllimport) RTYPE
++#                       define PyAPI_DATA(RTYPE) __attribute__((visibility("default"))) extern __declspec(dllimport) RTYPE
+         /* module init functions outside the core must be exported */
+ #                       if defined(__cplusplus)
+-#                               define PyMODINIT_FUNC extern "C" __declspec(dllexport) void
++#                               define PyMODINIT_FUNC __attribute__((visibility("default"))) extern "C" __declspec(dllexport) void
+ #                       else /* __cplusplus */
+-#                               define PyMODINIT_FUNC __declspec(dllexport) void
++#                               define PyMODINIT_FUNC __attribute__((visibility("default"))) __declspec(dllexport) void
+ #                       endif /* __cplusplus */
+ #               endif /* Py_BUILD_CORE */
+ #       endif /* HAVE_DECLSPEC */
+@@ -790,16 +790,16 @@ extern int fdatasync(int);
+ 
+ /* If no external linkage macros defined by now, create defaults */
+ #ifndef PyAPI_FUNC
+-#       define PyAPI_FUNC(RTYPE) RTYPE
++#       define PyAPI_FUNC(RTYPE) __attribute__((visibility("default"))) RTYPE
+ #endif
+ #ifndef PyAPI_DATA
+-#       define PyAPI_DATA(RTYPE) extern RTYPE
++#       define PyAPI_DATA(RTYPE) __attribute__((visibility("default"))) extern RTYPE
+ #endif
+ #ifndef PyMODINIT_FUNC
+ #       if defined(__cplusplus)
+-#               define PyMODINIT_FUNC extern "C" void
++#               define PyMODINIT_FUNC __attribute__((visibility("default"))) extern "C" void
+ #       else /* __cplusplus */
+-#               define PyMODINIT_FUNC void
++#               define PyMODINIT_FUNC __attribute__((visibility("default"))) void
+ #       endif /* __cplusplus */
+ #endif
+ 
+@@ -807,14 +807,14 @@ extern int fdatasync(int);
+ #if defined(Py_ENABLE_SHARED) && defined (HAVE_DECLSPEC_DLL)
+ #       if defined(Py_BUILD_CORE)
+ #               define DL_IMPORT(RTYPE) __declspec(dllexport) RTYPE
+-#               define DL_EXPORT(RTYPE) __declspec(dllexport) RTYPE
++#               define DL_EXPORT(RTYPE) __attribute__((visibility("default"))) __declspec(dllexport) RTYPE
+ #       else
+ #               define DL_IMPORT(RTYPE) __declspec(dllimport) RTYPE
+-#               define DL_EXPORT(RTYPE) __declspec(dllexport) RTYPE
++#               define DL_EXPORT(RTYPE) __attribute__((visibility("default"))) __declspec(dllexport) RTYPE
+ #       endif
+ #endif
+ #ifndef DL_EXPORT
+-#       define DL_EXPORT(RTYPE) RTYPE
++#       define DL_EXPORT(RTYPE) __attribute__((visibility("default"))) RTYPE
+ #endif
+ #ifndef DL_IMPORT
+ #       define DL_IMPORT(RTYPE) RTYPE
+diff --git a/Modules/_json.c b/Modules/_json.c
+index 13f5816..1474490 100644
+--- a/Modules/_json.c
++++ b/Modules/_json.c
+@@ -2407,7 +2407,7 @@ PyDoc_STRVAR(module_doc,
+ "json speedups\n");
+ 
+ void
+-init_json(void)
++__attribute__((visibility("default"))) init_json(void)
+ {
+     PyObject *m;
+     PyScannerType.tp_new = PyType_GenericNew;
+diff --git a/Modules/cjkcodecs/cjkcodecs.h b/Modules/cjkcodecs/cjkcodecs.h
+index 7e8390a..59e8d56 100644
+--- a/Modules/cjkcodecs/cjkcodecs.h
++++ b/Modules/cjkcodecs/cjkcodecs.h
+@@ -386,7 +386,7 @@ errorexit:
+ }
+ #endif
+ 
+-#define I_AM_A_MODULE_FOR(loc)                                          \
++#define I_AM_A_MODULE_FOR(loc) __attribute__((visibility("default")))                                          \
+     void                                                                \
+     init_codecs_##loc(void)                                             \
+     {                                                                   \
+diff --git a/Python/getargs.c b/Python/getargs.c
+index 81a2721..59f2055 100644
+--- a/Python/getargs.c
++++ b/Python/getargs.c
+@@ -18,7 +18,7 @@ int PyArg_ParseTupleAndKeywords(PyObject *, PyObject *,
+ int PyArg_VaParseTupleAndKeywords(PyObject *, PyObject *,
+                                 const char *, char **, va_list);
+ 
+-#ifdef HAVE_DECLSPEC_DLL
++#if 1
+ /* Export functions */
+ PyAPI_FUNC(int) _PyArg_Parse_SizeT(PyObject *, char *, ...);
+ PyAPI_FUNC(int) _PyArg_ParseTuple_SizeT(PyObject *, char *, ...);
+diff --git a/setup.py b/setup.py
+index 716f08e..c9204b6 100644
+--- a/setup.py
++++ b/setup.py
+@@ -1975,7 +1975,7 @@ class PyBuildExt(build_ext):
+ 
+                 # Pass empty CFLAGS because we'll just append the resulting
+                 # CFLAGS to Python's; -g or -O2 is to be avoided.
+-                cmd = "cd %s && env CFLAGS='' '%s/configure' %s" \
++                cmd = "cd %s && env CFLAGS='-fvisibility=hidden' '%s/configure' %s" \
+                       % (ffi_builddir, ffi_srcdir, " ".join(config_args))
+ 
+                 res = os.system(cmd)
+-- 
+1.8.3
+

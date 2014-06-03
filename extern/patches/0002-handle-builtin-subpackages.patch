@@ -1,0 +1,72 @@
+From 5b17138203e7a9d743a11213429113cc0d9534da Mon Sep 17 00:00:00 2001
+From: C Anthony Risinger <anthony.risinger@corvisa.com>
+Date: Mon, 17 Jun 2013 11:13:02 -0500
+Subject: [PATCH] handle builtin subpackages
+
+Signed-off-by: C Anthony Risinger <anthony.risinger@corvisa.com>
+Signed-off-by: C Anthony Risinger <anthony@xtfx.me>
+---
+ Modules/makesetup |    7 +++----
+ Python/import.c   |   13 +++++++++++++
+ 2 files changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/Modules/makesetup b/Modules/makesetup
+index 8862c36..4f17207 100755
+--- a/Modules/makesetup
++++ b/Modules/makesetup
+@@ -178,8 +178,6 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
+ 			*.cpp)		srcs="$srcs $arg";;
+ 			\$*)		libs="$libs $arg"
+ 					cpps="$cpps $arg";;
+-			*.*)		echo 1>&2 "bad word $arg in $line"
+-					exit 1;;
+ 			-u)		skip=libs; libs="$libs -u";;
+ 			[a-zA-Z_]*)	mods="$mods $arg";;
+ 			*)		echo 1>&2 "bad word $arg in $line"
+@@ -260,8 +258,9 @@ sed -e 's/[ 	]*#.*//' -e '/^[ 	]*$/d' |
+ 	INITBITS=
+ 	for mod in $MODS
+ 	do
+-		EXTDECLS="${EXTDECLS}extern void init$mod(void);$NL"
+-		INITBITS="${INITBITS}	{\"$mod\", init$mod},$NL"
++		sym=$(echo $mod | sed 's,\.,_,g;t tini;s,^,init,;t;:tini s,^,tini,')
++		EXTDECLS="${EXTDECLS}extern void $sym(void);$NL"
++		INITBITS="${INITBITS}	{\"$mod\", $sym},$NL"
+ 	done
+ 
+ 
+diff --git a/Python/import.c b/Python/import.c
+index 92363b3..4c400c9 100644
+--- a/Python/import.c
++++ b/Python/import.c
+@@ -1401,6 +1401,13 @@ find_module(char *fullname, char *subname, PyObject *path, char *buf,
+ #endif
+         path = PySys_GetObject("path");
+     }
++            /* START: <module 'a.b.c' (built-in)> */
++            if (fullname != NULL && is_builtin(fullname)) {
++                strcpy(buf, fullname);
++                PyMem_FREE(name);
++                return &fd_builtin;
++            }
++            /* END: <module 'a.b.c' (built-in)> */
+     if (path == NULL || !PyList_Check(path)) {
+         PyErr_SetString(PyExc_RuntimeError,
+                         "sys.path must be a list of directory names");
+@@ -1996,7 +2003,13 @@ init_builtin(char *name)
+             }
+             if (Py_VerboseFlag)
+                 PySys_WriteStderr("import %s # builtin\n", name);
++            /* START: <module 'a.b.c' (built-in)> */
++            char *ctx = (strchr(name, '.')==NULL) ? NULL : name;
++            char *ctx_orig = _Py_PackageContext;
++            _Py_PackageContext = ctx;
+             (*p->initfunc)();
++            _Py_PackageContext = ctx_orig;
++            /* END: <module 'a.b.c' (built-in)> */
+             if (PyErr_Occurred())
+                 return -1;
+             if (_PyImport_FixupExtension(name, name) == NULL)
+-- 
+1.7.2.5
+

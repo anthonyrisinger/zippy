@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+
+if __name__ == '__main__':
+    import sys
+    sys.dont_write_bytecode = True
+
+    import os
+    from datetime import datetime
+    os.environ['ZIPPY_BUILD'] = datetime.utcnow().strftime('%F-%s')
+
+    from zippy import zippy
+    zippy.waf_entry_point()
