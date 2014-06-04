@@ -32,7 +32,6 @@ def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
             def dist_get(key=None, **kwds):
                 if key and 'mapping' not in kwds:
                     kwds['mapping'] = env.dist[key]
-                kwds.setdefault('scheme', 'legacy')
                 dist = Distribution(metadata=Metadata(**kwds))
                 return dist
             ctx.zippy_dist_get = dist_get
