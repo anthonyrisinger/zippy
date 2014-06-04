@@ -39,10 +39,14 @@ def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
             locator = ctx._zippy_locator = AggregatingLocator(
                 DirectoryLocator(env.top_xsrc, recursive=False),
                 JSONLocator(),
+                #TODO: PyPIRPCLocator?
                 SimpleScrapingLocator(env.api_pypi, timeout=3.0),
                 scheme='legacy',
                 merge=False,
                 )
+            #FIXME: probably need to call add_distribution(...) on the results
+            # so future lookups resolve to the same dist (so long as the
+            # version is compatible) else we might return incompatible dupes
             finder = ctx._zippy_finder = DependencyFinder(locator)
             ctx.zippy_dist_find = partial(finder.find, prereleases=True)
     return env
