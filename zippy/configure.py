@@ -316,7 +316,6 @@ def configure(cnf):
     _exports = {
         'ZIPPY_BUILD': zpy.tstamp,
         'UWSGI_USE_DISTUTILS': 'x',
-        'UWSGI_AS_CPYEXT': 'x',
         'LANG': 'en_US.UTF-8',
         'USER': _user.pw_name,
         'HOME': _user.pw_dir,
@@ -386,7 +385,7 @@ def configure(cnf):
         ('embedded_plugins', set((
             'cache', 'carbon', 'cheaper_busyness', 'corerouter', 'dumbloop',
             'fastrouter', 'gevent', 'http', 'logfile', 'logsocket',
-            'mongodblog', 'nagios', 'ping', 'python', 'pyuwsgi', 'rawrouter', 'redislog',
+            'mongodblog', 'nagios', 'ping', 'python', 'rawrouter', 'redislog',
             'router_basicauth', 'router_cache', 'router_http',
             'router_redirect', 'router_rewrite', 'router_static',
             'router_uwsgi', 'rpc', 'rrdtool', 'rsyslog', 'signal', 'spooler',
