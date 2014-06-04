@@ -52,7 +52,8 @@ setup(
     url=_url,
     license='New BSD',
     platforms=['any'],
-    packages=find_packages(exclude=['build']),
+    #FIXME: howto whitelist
+    packages=find_packages(exclude=['build', 'extern']),
     #package_dir={'': ''},
     package_data={'zippy': []},
     #include_package_data=True,
