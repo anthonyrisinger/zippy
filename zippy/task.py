@@ -358,7 +358,7 @@ class ZPyTask_Requirements(ZPyTaskBase):
                 sig_path = signode.abspath()
                 for sfx, cmd in (
                     (_tar, '{env.TAR}\0-C\0{sig_path}\0-xf\0{path}\0'),
-                    (_zip, '{env.UNZIP}\0-o\0-d\0{sig_path}\0{path}\0'),
+                    (_zip, '{env.UNZIP}\0-q\0-o\0-d\0{sig_path}\0{path}\0'),
                     (None, None),
                     ):
                     if sfx is None:
