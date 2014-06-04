@@ -339,6 +339,7 @@ class Distribution(object):
         """
         self.metadata = metadata
         self.name = metadata.name
+        #FIXME: self.key = self.name.lower().replace('-', '_')
         self.key = self.name.lower()    # for case-insensitive comparisons
         self.version = metadata.version
         self.locator = None
