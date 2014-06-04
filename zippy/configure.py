@@ -309,6 +309,14 @@ def configure(cnf):
         '-pipe',
         '-O2',
         '-fPIC',
+        #FIXME: wheezy can do this, DISABLE FOR DEBUG
+        #'-flto=%s' % opt.jobs,
+        #'-fno-fat-lto-objects',
+        #FIXME: this needs gold or ld 2.21
+        #'-fuse-linker-plugin',
+        #'-fuse-ld=gold',
+        #FIXME: this should be with other profile opts, not here!
+        #'-fprofile-correction',
         '-fstack-protector',
         '-fvisibility=hidden',
         '-Wcoverage-mismatch',
@@ -329,7 +337,7 @@ def configure(cnf):
         'CFLAGS': _cflags,
         'CXXFLAGS': _cflags,
         'CPPFLAGS': ['-D_FORTIFY_SOURCE=2'],
-        'LDFLAGS': ['-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now'],
+        'LDFLAGS': ['-Wl,-O1,--sort-common,--as-needed,-z,relro'],
         'UWSGI_PROFILE' : '_zippy_%s.ini' % _ident,
         }
     if zpy.opt.get('debug'):
