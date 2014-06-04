@@ -118,6 +118,9 @@ def create_wheel(cache_path):
     kill = set()
     try:
         with open(entry_points) as fp:
+            from ConfigParser import MissingSectionHeaderError
+            read_exports = get_module('distlib.util').read_exports
+
             def conv(s):
                 return s.split('=', 1)[-1].strip()
 
@@ -129,7 +132,20 @@ def create_wheel(cache_path):
             ep_map = pydist.dictionary
             ep_map = ep_map.setdefault('extensions', dict())
             ep_map = ep_map.setdefault('python.commands', dict())
-            ep_new = get_module('distlib.util').read_exports(fp, conv=conv)
+            try:
+                ep_new = read_exports(fp, conv=conv)
+            except MissingSectionHeaderError:
+                #FIXME: UPSTREAM distlib: could be indented!
+                # entry_points setup keyword argument could be a str
+                # gunicorn does this
+                from textwrap import dedent
+                fp.seek(0)
+                ep_dedent = dedent(fp.read().strip('\n\r'))
+                fp.seek(0)
+                fp.truncate()
+                fp.write(ep_dedent)
+                fp.seek(0)
+                ep_new = read_exports(fp, conv=conv)
 
             for k in ep_new:
                 if k not in ep_trans:
