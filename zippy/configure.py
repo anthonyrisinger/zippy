@@ -28,6 +28,7 @@ from waflib import Configure, Context, Build
 
 from .vendor.distlib.util import parse_requirement
 
+from .util import get_module
 from .util import sub_build
 from .util import py_v
 
@@ -112,21 +113,26 @@ def zpy_requirements(cnf, *nodes, **ctx):
     zpy.dist = zpy.dist if 'dist' in zpy else dict()
     #for key in ('distlib', 'zippy'):
     for key in ('zippy',):
+        metadata = get_module('distlib.metadata')
         module = __import__(key)
         pypath = pth.dirname(module.__path__[0])
         pydist = None
 
         try:
-            with open(pth.join(pypath, 'pydist.json')) as fp:
+            with open(pth.join(pypath, metadata.METADATA_FILENAME)) as fp:
                 pydist = fp.read()
         except IOError:
             try:
-                pydist = module.__loader__.get_data('pydist.json')
+                pydist = module.__loader__.get_data(
+                    metadata.METADATA_FILENAME,
+                    )
             except AttributeError:
                 #TODO: pull from JSONLocator?
                 pass
 
-        assert pydist, 'unable to locate {0}/pydist.json'.format(key)
+        assert pydist, 'unable to locate {0}/{1}'.format(
+            key, metadata.METADATA_FILENAME,
+            )
 
         pydist = json.loads(pydist)
         zpy.dist[key] = pydist
@@ -161,10 +167,9 @@ def zpy_requirements(cnf, *nodes, **ctx):
     for grp in bld.groups:
         for gen in grp:
             for tsk in gen.tasks:
-                metadata = zpy.dist[tsk.dist.key] = tsk.dist.metadata.dictionary
-                #metadata['license-file'] =
-                metadata['license'] = '...'
-                metadata['description'] = '...'
+                pydist = zpy.dist[tsk.dist.key] = tsk.dist.metadata.dictionary
+                pydist['license'] = '...'
+                pydist['description'] = '...'
 
     if 'python' not in zpy.dist:
         cnf.fatal('define ONE `python==x.y.z` requirement')

@@ -219,7 +219,7 @@ class ZPyTask_Requirements(ZPyTaskBase):
         url = urlparse.urlsplit(source_url)
         name = pth.basename(url.path).lower() or dist.key
         path = pth.join(zpy.top_xsrc, name)
-        meta = path + '.json'
+        meta = path + '.' + metadata.METADATA_FILENAME
 
         if url.path and path != url.path:
             path, message = urllib.urlretrieve(url.geturl(), path)
@@ -379,7 +379,7 @@ class ZPyTask_Requirements(ZPyTaskBase):
                                 )
                             os.rename(tmp.abspath(), out_path)
                         break
-                shutil.copy2(meta, pth.join(out_path, 'pydist.json'))
+                shutil.copy2(meta, pth.join(out_path, metadata.METADATA_FILENAME))
 
         if dist.key == 'python':
             lib = pth.join(out_path, 'Lib')
@@ -774,7 +774,7 @@ class ZPyTask_Extension(ZPyTaskBase):
         if getattr(self, 'cwd', None) is None:
             self.cwd = pth.join(bld.bldnode.abspath(), dist.key)
         dist_path = pth.join(self.cwd, 'dist')
-        if not pth.exists(pth.join(self.cwd, 'pydist.json')):
+        if not pth.exists(pth.join(self.cwd, metadata.METADATA_FILENAME)):
             return rv
 
         rv |= command(
