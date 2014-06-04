@@ -218,10 +218,13 @@ class ZPyTask_Requirements(ZPyTaskBase):
         source_url = dist.source_url or ''
         url = urlparse.urlsplit(source_url)
         name = pth.basename(url.path).lower() or dist.key
+        name = name.replace(dist.key, dist.name, 1)
+        if name.endswith('.tgz'):
+            name = name[:-4] + '.tar.gz'
         path = pth.join(zpy.top_xsrc, name)
         meta = path + '.' + metadata.METADATA_FILENAME
 
-        if url.path and path != url.path:
+        if url.scheme and url.path and url.path != path:
             path, message = urllib.urlretrieve(url.geturl(), path)
 
         if pth.isfile(path):
@@ -344,7 +347,7 @@ class ZPyTask_Requirements(ZPyTaskBase):
                                 contacts.append(info)
                             node[attr] = contacts
 
-                    pydist['source_url'] = 'file://' + pth.relpath(path, zpy.top)
+                    pydist['source_url'] = pth.relpath(path, zpy.top)
 
                     with codecs.open(meta, 'w', 'utf-8') as fp:
                         json.dump(
