@@ -52,7 +52,7 @@ setup(
     url=_url,
     license='New BSD',
     platforms=['any'],
-    packages=find_packages(exclude=['waflib', 'waflib.*']),
+    packages=find_packages(exclude=['build']),
     #package_dir={'': ''},
     package_data={'zippy': []},
     #include_package_data=True,
