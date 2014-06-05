@@ -592,6 +592,7 @@ class ZPyTask_Update(ZPyTaskBase):
             )
         buf.write(distcfg.replace('\0', '\n'))
 
+    #TODO: write out {ident}.json instead!
     @run('python (>= 2)', 'Lib/_zippy_%(identifier)s.py',
             raw=True, finder='make_node')
     def run(self, buf):
