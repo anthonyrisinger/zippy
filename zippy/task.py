@@ -920,7 +920,6 @@ class ZPyTask_Final(ZPyTaskBase):
         excl = [
             pth.join('bin', 'python'),
             pth.join('bin', zpy.py_ver1),
-            pth.join('bin', zpy.py_ver2),
             ]
         nodes = bld.o.ant_glob('bin/**', excl=excl)
         for node in nodes:
