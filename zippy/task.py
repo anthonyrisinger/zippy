@@ -9,7 +9,6 @@ pp = pprint.pprint
 
 import sys, os, logging
 import time, re, shutil, glob
-from itertools import imap, repeat
 
 import urlparse, urllib, zipfile, json
 from collections import defaultdict
@@ -918,10 +917,11 @@ class ZPyTask_Final(ZPyTaskBase):
         bld = self.generator.bld
         zpy = bld.zpy
         ins = set()
-        excl = imap(pth.join, repeat('bin'), (
-            'python',
-            zpy.py_ver1,
-            ))
+        excl = [
+            pth.join('bin', 'python'),
+            pth.join('bin', zpy.py_ver1),
+            pth.join('bin', zpy.py_ver2),
+            ]
         nodes = bld.o.ant_glob('bin/**', excl=excl)
         for node in nodes:
             path = node.abspath()
