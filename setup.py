@@ -58,7 +58,7 @@ setup(
     package_data={'zippy': []},
     #include_package_data=True,
     zip_safe=True,
-    #scripts=["tools/parse_xsd2.py", "tools/make_metadata.py"],
+    scripts=['scripts/activate'],
     #tests_require=[],
     #install_requires=[],
     #extras_require={
