@@ -840,10 +840,11 @@ class ZPyTask_Final(ZPyTaskBase):
         excl = dict()
         incl[zpy.o] = set(('bin', 'lib'))
         incl[zpy.o_lib] = set((zpy.py_ver2,))
+        excl[zpy.o_bin] = set(('python', zpy.py_ver1, zpy.py_ver2))
         excl[zpy.o_lib_py] = set(('config', 'lib-dynload'))
         #...used to filter stdlib
         drop_dir = set()
-        drop_ext = set(('.a', '.o', '.in', '.pyo', '.exe'))
+        drop_ext = set(('.a', '.o', '.in', '.pyo', '.pyc', '.exe'))
         incl_files = set()
 
         offset = len(zpy.o) + 1
@@ -876,28 +877,5 @@ class ZPyTask_Final(ZPyTaskBase):
 
                 for f in sorted(_f):
                     path = pth.join(root, f)
-                    if f not in incl_files and f not in msk:
-                        continue
-                    elif root.startswith(zpy.o_bin):
-                        with open(path, mode='r+') as fd:
-                            buf = fd.read(256)
-                            if '#!' not in buf[:4]:
-                                continue
-                            if 'python' not in buf.lower():
-                                continue
-
-                            buf = (buf + fd.read()).replace(
-                                'pkg_resources',
-                                'zippy.pkg_resources',
-                                )
-                            fd.seek(0)
-                            fd.truncate()
-                            fd.write('#!%s' % pth.join(
-                                zpy.PREFIX,
-                                'bin',
-                                zpy.py_ver2,
-                                ))
-                            fd.write(buf[buf.find('\n'):])
-
-                    elif root.startswith(zpy.o_lib_py):
+                    if f in incl_files or f in msk:
                         zfd.write(path, path[offset:])

@@ -221,7 +221,7 @@ def create_wheel(cache_path):
 
     maker = scripts.ScriptMaker(None, None)
     #maker.clobber = True
-    #maker.executable = ''
+    maker.executable = 'python'
     #maker.variants = set(('', 'X', 'X.Y'))
     whl.install(sections, maker)
 
