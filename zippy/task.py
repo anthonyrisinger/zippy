@@ -364,6 +364,9 @@ class ZPyTask_Requirements(ZPyTaskBase):
                             indent=2,
                             )
 
+                    dist.metadata._legacy = None
+                    dist.metadata._data = pydist
+
                 sig_path = signode.abspath()
                 for sfx, cmd in (
                     (_tar, '{env.TAR}\0-C\0{sig_path}\0-xf\0{path}\0'),
