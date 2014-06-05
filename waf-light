@@ -10,5 +10,8 @@ if __name__ == '__main__':
     from datetime import datetime
     os.environ['ZIPPY_BUILD'] = datetime.utcnow().strftime('%F-%s')
 
+    from zippy.util import init_builtins
+    init_builtins()
+
     from zippy import zippy
     zippy.waf_entry_point()
