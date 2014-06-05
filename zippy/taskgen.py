@@ -120,7 +120,7 @@ def zpy_extension(gen):
             and (not incl or dist.key in incl)
         )
 
-    graph = make_graph(wanted, scheme=bld._zippy_locator.scheme)
+    graph = make_graph(wanted, scheme=bld.aggregating_locator.scheme)
     ok, cycle = graph.topological_sort()
     if cycle:
         # sort the remainder on dependency count.

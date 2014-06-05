@@ -26,11 +26,12 @@ from os import path as pth
 from waflib import Utils, Logs
 from waflib import Configure, Context, Build
 
-from .vendor.distlib.util import parse_requirement
-
 from .util import get_module
 from .util import sub_build
 from .util import py_v
+
+make_dist = get_module('distlib.database').make_dist
+parse_requirement = get_module('distlib.util').parse_requirement
 
 
 class ZPyCtx_Configure(Configure.ConfigurationContext):
@@ -69,11 +70,10 @@ def zpy_requirements(cnf, *nodes, **ctx):
     _rdist = defaultdict(set)
     _dists = set()
     _urls = list()
+    reqts = set()
 
     for node in filter(None, nodes):
         for url in sorted(glob.glob(node)) or [node]:
-            if '://' not in url:
-                url = 'file://' + pth.abspath(url)
             url = urlparse.urlsplit(url)
             if url and url not in _urls:
                 _urls.append(url)
@@ -99,15 +99,32 @@ def zpy_requirements(cnf, *nodes, **ctx):
                 if not req:
                     continue
 
-                #TODO: break down urls
-                req = req.url and req.source or req.requirement
-                hits, probs = cnf.zippy_dist_find(req)
-                _rdist[node.path_from(cnf.path)].update(hits)
-                _dists.update(hits)
+                reqts.add(req.requirement)
 
-    _msg = 'Checking for distributions'
+    Logs.pprint(None, 'Resolving distributions...')
+    anonymous = make_dist('Anonymous', '1.0')
+    anonymous.metadata.add_requirements(reqts)
+    hits, probs = cnf.dependency_finder.find(anonymous)
+    hits.discard(anonymous)
+    for prob in sorted(probs):
+        if prob[0] != 'unsatisfied':
+            probs.discard(prob)
+            continue
+
+        prob_req = parse_requirement(prob[1])
+        if prob_req.name == 'dateutil':
+            # bogus dist (should be python-dateutil) referenced by tastypie?
+            probs.discard(prob)
+            continue
+
+    if probs:
+        probs_str = ', '.join(sorted(probs))
+        cnf.fatal('unsatisfied requirements: {0}'.format(probs_str))
+
+    _dists.update(hits)
+    #FIXME: incorrect!
+    _rdist[node.path_from(cnf.path)].update(hits)
     if not _dists:
-        cnf.msg(_msg, False, 'RED')
         cnf.fatal('define at least ONE distribution')
 
     zpy.dist = zpy.dist if 'dist' in zpy else dict()
@@ -140,7 +157,6 @@ def zpy_requirements(cnf, *nodes, **ctx):
         _rdist['(internal)'].add(dist)
         _dists.add(dist)
 
-    Logs.pprint(None, _msg + '...')
     for node, hits in sorted(_rdist.iteritems()):
         idx = '%d/%d' % (len(hits), len(_dists))
         sys.stderr.write('%7s %s\n' % (idx, node))

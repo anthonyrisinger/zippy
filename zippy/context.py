@@ -22,6 +22,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+#TODO: custom python finder
+#class PythonLocator(...):
+#    pass
+
+
 class JSONDirectoryLocator(locators.DirectoryLocator):
 
     def _get_project(self, *args, **kwds):
@@ -71,17 +76,22 @@ def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
                 return dist
             ctx.zippy_dist_get = dist_get
 
-            locator = ctx._zippy_locator = locators.AggregatingLocator(
+            ctx.aggregating_locator = locators.AggregatingLocator(
+                # extern/sources/*.pydist.json
                 JSONDirectoryLocator(env.top_xsrc, recursive=False),
+                # eg. https://www.red-dove.com/pypi/projects/U/uWSGI/
                 locators.JSONLocator(),
+                # eg. https://pypi.python.org/simple/uWSGI/
                 locators.SimpleScrapingLocator(env.api_pypi, timeout=3.0),
+                # scheme here applies to the loose matching of dist version.
+                # currently, most pypi dists are not PEP 426/440 compatible.
+                # *DOES NOT* apply to returned [2.x] metadata!
                 scheme='legacy',
+                # return the first dist found in the stack and stop searching!
                 merge=False,
                 )
-            #FIXME: probably need to call add_distribution(...) on the results
-            # so future lookups resolve to the same dist (so long as the
-            # version is compatible) else we might return incompatible dupes
-            finder = ctx._zippy_finder = locators.DependencyFinder(locator)
-            ctx.zippy_dist_find = partial(finder.find, prereleases=True)
+            ctx.dependency_finder = locators.DependencyFinder(
+                ctx.aggregating_locator,
+                )
     return env
 Context.Context.zpy = property(zpy)

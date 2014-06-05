@@ -217,8 +217,14 @@ class ZPyTask_Requirements(ZPyTaskBase):
         bld_path = bld.bldnode.abspath()
         source_url = dist.source_url or ''
         url = urlparse.urlsplit(source_url)
+        # normalize initially to dist.key
         name = pth.basename(url.path).lower() or dist.key
+        # ensure sdist filename matches dist.name!
+        # otherwise dist.name != dist.metadata.name if the object was created
+        # from a filename, even if metadata is loaded later!
+        #FIXME: upstream fix to above...
         name = name.replace(dist.key, dist.name, 1)
+        # no raison other than consistency
         if name.endswith('.tgz'):
             name = name[:-4] + '.tar.gz'
         path = pth.join(zpy.top_xsrc, name)
