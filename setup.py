@@ -39,6 +39,10 @@ from setuptools import setup
 from setuptools import find_packages
 
 
+# exclude=['build'] does not prevent setuptools from walking it
+_packages = ['zippy'] + map('zippy.'.__add__, find_packages('zippy'))
+
+
 setup(
     name='zippy',
     version='0.6.1',
@@ -53,7 +57,7 @@ setup(
     license='New BSD',
     platforms=['any'],
     #FIXME: howto whitelist
-    packages=find_packages(exclude=['build', 'extern']),
+    packages=_packages,
     #package_dir={'': ''},
     package_data={'zippy': []},
     #include_package_data=True,
