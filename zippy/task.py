@@ -758,7 +758,7 @@ class ZPyTask_Profile(_ZPyTask):
         return app
 
 
-class ZPyTask_Extension(ZPyTaskBase):
+class ZPyTask_Distribution(ZPyTaskBase):
 
     color = 'GREEN'
     before = []

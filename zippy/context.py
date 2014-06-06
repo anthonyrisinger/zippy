@@ -22,8 +22,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-#TODO: custom python finder
+#TODO: custom python locator
 #class PythonLocator(...):
+#    pass
+
+
+#TODO: custom aggregating locator
+#class CleanAggregatingLocator(...):
 #    pass
 
 

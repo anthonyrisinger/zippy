@@ -137,7 +137,7 @@ def zpy_extension(gen):
         o_req_setup.sig = Utils.h_file(o_req_setup.abspath())
         o_req_wheel = o_req.make_node('pydist.json')
         tsk = _cache[dist] = gen.create_task(
-            'ZPyTask_Extension',
+            'ZPyTask_Distribution',
             o_req_setup,
             o_req_wheel,
             )
