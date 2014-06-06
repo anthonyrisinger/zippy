@@ -30,6 +30,8 @@ from .util import get_module
 from .util import sub_build
 from .util import py_v
 
+metadata = get_module('distlib.metadata')
+database = get_module('distlib.database')
 make_dist = get_module('distlib.database').make_dist
 parse_requirement = get_module('distlib.util').parse_requirement
 
@@ -67,30 +69,49 @@ def zpy_requirements(cnf, *nodes, **ctx):
     zpy = cnf.zpy
     opt = zpy.opt
 
-    _rdist = defaultdict(set)
-    _dists = set()
-    _urls = list()
+    urls = list()
     reqts = set()
+    dists = set()
 
     for node in filter(None, nodes):
         for url in sorted(glob.glob(node)) or [node]:
-            url = urlparse.urlsplit(url)
-            if url and url not in _urls:
-                _urls.append(url)
+            if url and url not in urls:
+                urls.append(url)
 
-    if not _urls:
+    if not urls:
         cnf.fatal('define at least ONE requirement url')
 
-    for url in _urls:
-        name = pth.basename(url.path)
-        node = cnf.bldnode.find_or_declare('.'.join((
-            'config', name or 'requirements.txt',
-            )))
+    urls.reverse()
+    bld_abspath = cnf.bldnode.abspath()
+    node = cnf.bldnode.find_or_declare('config.requirements.txt')
+    with open(node.abspath(), mode='a') as fp:
+        while urls:
+            url = urls.pop()
+            urldata = None
 
-        path, message = urllib.urlretrieve(url.geturl(), node.abspath())
+            if pth.isdir(url):
+                url = pth.relpath(url, zpy.top)
+                path = pth.join(url, metadata.METADATA_FILENAME)
+                if pth.exists(path):
+                    # url is a project dir
+                    dist = database.Distribution(
+                        metadata=metadata.Metadata(path=path),
+                        )
+                    dist.requested = True
+                    dists.add(dist)
 
-        with open(path, mode='r') as fd:
-            for spec in fd:
+                    link = pth.relpath(url, bld_abspath)
+                    dest = pth.join(bld_abspath, dist.key)
+                    os.symlink(link, dest)
+
+                    #TODO: build_requires/test_requires/etc/?
+                    urldata = dist.run_requires
+
+            if urldata is None:
+                urldata = urllib.urlopen(url).read().splitlines()
+
+            fp.write('# {0}\n'.format(url))
+            for spec in sorted(urldata):
                 spec = spec.strip()
                 if not spec or spec[0]=='#':
                     continue
@@ -99,6 +120,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
                 if not req:
                     continue
 
+                fp.write('{0}\n'.format(req.requirement))
                 reqts.add(req.requirement)
 
     Logs.pprint(None, 'Resolving distributions...')
@@ -121,16 +143,13 @@ def zpy_requirements(cnf, *nodes, **ctx):
         probs_str = ', '.join(sorted(probs))
         cnf.fatal('unsatisfied requirements: {0}'.format(probs_str))
 
-    _dists.update(hits)
-    #FIXME: incorrect!
-    _rdist[node.path_from(cnf.path)].update(hits)
-    if not _dists:
+    dists.update(hits)
+    if not dists:
         cnf.fatal('define at least ONE distribution')
 
     zpy.dist = zpy.dist if 'dist' in zpy else dict()
     #for key in ('distlib', 'zippy'):
     for key in ('zippy',):
-        metadata = get_module('distlib.metadata')
         module = __import__(key)
         pypath = pth.dirname(module.__path__[0])
         pydist = None
@@ -151,32 +170,28 @@ def zpy_requirements(cnf, *nodes, **ctx):
             key, metadata.METADATA_FILENAME,
             )
 
-        pydist = json.loads(pydist)
-        zpy.dist[key] = pydist
+        zpy.dist[key] = json.loads(pydist)
         dist = cnf.zippy_dist_get(key)
-        _rdist['(internal)'].add(dist)
-        _dists.add(dist)
+        dist.requested = True
+        dists.add(dist)
 
-    for node, hits in sorted(_rdist.iteritems()):
-        idx = '%d/%d' % (len(hits), len(_dists))
-        sys.stderr.write('%7s %s\n' % (idx, node))
-        for dist in sorted(hits, key=operator.attrgetter('key')):
-            #FIXME: .format()
-            sys.stderr.write('%7s %s%s %s%s\n%s' % (
-                '',
-                Logs.colors.BOLD_BLUE,
-                dist.name,
-                Logs.colors.NORMAL + Logs.colors.BLUE,
-                dist.version,
-                Logs.colors.NORMAL,
-                ))
+    for dist in sorted(dists, key=operator.attrgetter('key')):
+        #FIXME: .format()
+        sys.stderr.write('%7s %s%s %s%s\n%s' % (
+            '',
+            Logs.colors.BOLD_BLUE,
+            dist.name,
+            Logs.colors.NORMAL + Logs.colors.BLUE,
+            dist.version,
+            Logs.colors.NORMAL,
+            ))
 
     feats = Utils.to_list(ctx.get('features', ''))
     if 'zpy-requirements' not in feats:
         feats.append('zpy-requirements')
         ctx['features'] = feats
     inputs = ctx.setdefault('source', list())
-    inputs.extend(_dists)
+    inputs.extend(dists)
 
     bld = sub_build(cnf, ctx, logger=cnf.logger)
     bld.compile()

@@ -15,15 +15,18 @@ wheel = get_module('distlib.wheel')
 #TODO: hmm, should maybe be a context manager...
 def _new_context(prefix=None):
     pydist = metadata.Metadata(path='pydist.json')
+    tstamp = (
+        os.environ.get('ZIPPY_BUILD')
+        or datetime.utcnow().strftime('%F-%s')
+        )
     if prefix is None:
         prefix = sys.prefix
         #TODO: drop this!
         if pydist.name != 'setuptools':
-            tstamp = (
-                os.environ.get('ZIPPY_BUILD')
-                or datetime.utcnow().strftime('%F-%s')
+            prefix = os.path.join(
+                __package__ + '.build-' + tstamp,
+                'wheel',
                 )
-            prefix = __package__ + '.' + tstamp
     purelib = os.path.join(prefix, 'lib')
     platlib = os.path.join(prefix, 'lib')
     scripts = os.path.join(prefix, 'scripts')
@@ -41,6 +44,7 @@ def _new_context(prefix=None):
         )
 
     ctx = {
+        'tstamp': tstamp,
         'pydist': pydist,
         'sections': {
             'prefix': prefix,
@@ -53,6 +57,7 @@ def _new_context(prefix=None):
         'paths': {
             'egginfo': egginfo,
             'distinfo': distinfo,
+            'buildbase': __package__ + '.build-' + tstamp,
             },
         }
 
@@ -74,14 +79,19 @@ def create_wheel(cache_path):
     prefix = ctx['sections']['prefix']
     egginfo = ctx['paths']['egginfo']
     distinfo = ctx['paths']['distinfo']
+    buildbase = ctx['paths']['buildbase']
     ns = dict(globals(), **{
         '__name__': '__main__',
         '__file__': 'setup.py',
         '__package__': None,
         })
 
-    sys.argv[:] = ['setup.py'] + (
-        'install'
+    sys.argv[:] = (
+        'setup.py'
+        '\0build'
+        '\0--build-base'
+        '\0{paths[buildbase]}'
+        '\0install'
         '\0--single-version-externally-managed'
         '\0--record={sections[prefix]}/installed-files.txt'
         '\0--install-purelib={sections[purelib]}'
@@ -94,7 +104,7 @@ def create_wheel(cache_path):
     #TODO: drop this!
     # install setuptools directly
     if pydist.name == 'setuptools':
-        sys.argv[4:] = []
+        sys.argv[sys.argv.index('install')+1:] = []
 
     for impl in (
         'setup.cpyext.py',
@@ -217,8 +227,7 @@ def create_wheel(cache_path):
     #if pydist.name != __package__:
     #    return
 
-    if prefix.startswith(__package__):
-        shutil.rmtree(prefix)
+    shutil.rmtree(buildbase, ignore_errors=True)
 
 
 if __name__ == '__main__':
