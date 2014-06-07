@@ -426,7 +426,7 @@ def configure(cnf):
         ('plugins', ''),
         ('embed_files', ''),
         ('embed_config', ''),
-        ('embedded_plugins', set((
+        ('embedded_plugins', [
             'cache', 'carbon', 'cheaper_busyness', 'corerouter', 'dumbloop',
             'fastrouter', 'gevent', 'http', 'logfile', 'logsocket',
             'mongodblog', 'nagios', 'ping', 'python', 'rawrouter', 'redislog',
@@ -435,7 +435,7 @@ def configure(cnf):
             'router_uwsgi', 'rpc', 'rrdtool', 'rsyslog', 'signal', 'spooler',
             'sslrouter', 'symcall', 'syslog', 'transformation_gzip',
             'transformation_tofile', 'ugreen', 'zergpool',
-            ))),
+            ]),
         ):
         zpy.uconf.setdefault(*default)
 

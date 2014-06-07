@@ -509,7 +509,7 @@ class ZPyTask_Update(ZPyTaskBase):
         """libpythonX.Y.a object glob; default PREFIX to sys.executable
         """
         zpy = self.generator.bld.zpy
-        dlm = '-DLANDMARK=\'"_zippy_%s.py"\'' % zpy.identifier
+        dlm = '-DLANDMARK=\'"zippy.%s.json"\'' % zpy.identifier
         l4sh = '../*/l4sh/*.o'.format(
             **locals()
             )
@@ -592,7 +592,7 @@ class ZPyTask_Update(ZPyTaskBase):
         buf.write(distcfg.replace('\0', '\n'))
 
     #TODO: write out {ident}.json instead!
-    @run('python (>= 2)', 'Lib/_zippy_%(identifier)s.py',
+    @run('python (>= 2)', 'Lib/zippy.%(identifier)s.json',
             raw=True, finder='make_node')
     def run(self, buf):
         """custom marker + meta-module
@@ -604,33 +604,14 @@ class ZPyTask_Update(ZPyTaskBase):
         bld = gen.bld
         zpy = bld.zpy
 
-        def boot(module):
-            try:
-                import sys
-                import zippy.boot
-                zippy.data = sys.modules.setdefault('zippy.data', module)
-                zippy.boot.main()
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-
-        src = getsource(boot)
-        futures = ', '.join((
-            'unicode_literals',
-            'absolute_import',
-            'print_function',
-            'division',
-            ))
-        zpy_dict = dict(self.generator.bld.zpy)
+        zpy_dict = dict(zpy)
         #TODO: remove once fixed elsewhere...
         zpy_dict['req'] = dict(
             (k, str(v))
             for (k, v) in (zpy_dict.get('req') or dict()).iteritems()
             )
 
-        buf.write('from __future__ import %s\n\n' % futures, flags='a')
-        buf.write('build_time_vars = %s\n\n' % pprint.pformat(zpy_dict), flags='a')
-        buf.write(dedent(src), flags='a')
+        buf.write(json.dumps(zpy_dict), flags='wb')
 
     @run('python (>= 2)', 'Modules/Setup', raw=True, finder='make_node')
     def run(self, buf):
