@@ -247,6 +247,9 @@ def zpy_requirements(cnf, *nodes, **ctx):
         zpy.o_lib_py_site,
         ])
 
+    # touch LANDMARK so PYTHONHOME doesn't need export afterwards
+    open(pth.join(zpy.o_lib_py, zpy.landmark), mode='a').close()
+
     if 'uwsgi' not in zpy.dist:
         cnf.fatal('define ONE `uWSGI==x.y.z` requirement')
 
@@ -285,6 +288,8 @@ def configure(cnf):
     zpy.identifier = re.sub('[^-0-9A-Za-z_]', '', _ident)
     if zpy.identifier != _ident:
         cnf.fatal('ident MUST be alphanumeric: %r' % _ident)
+
+    zpy.landmark = '{0}.{1}.json'.format(__package__, _ident)
 
     dirs = set((
         ('cache', None),

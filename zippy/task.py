@@ -591,7 +591,7 @@ class ZPyTask_Update(ZPyTaskBase):
             )
         buf.write(distcfg.replace('\0', '\n'))
 
-    @run('python (>= 2)', 'Lib/zippy.%(identifier)s.json',
+    @run('python (>= 2)', 'Lib/%(landmark)s',
             raw=True, finder='make_node')
     def run(self, buf):
         """custom marker + metadata
@@ -600,7 +600,6 @@ class ZPyTask_Update(ZPyTaskBase):
         bld = gen.bld
         zpy = bld.zpy
 
-        zpy.landmark = buf.name
         buf.write(json.dumps(dict(zpy)), flags='wb')
 
     @run('python (>= 2)', 'Modules/Setup', raw=True, finder='make_node')
@@ -934,7 +933,6 @@ class ZPyTask_Final(ZPyTaskBase):
 
         offset = len(zpy.o) + 1
         with zipfile.ZipFile(zpy.O_UWSGI, 'a', zipfile.ZIP_DEFLATED) as zfd:
-            #TODO: put in zippy dist/wheel?
             # pack our meta first
             zfd.write(
                 pth.join(zpy.pylibdir, zpy.landmark),
