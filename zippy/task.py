@@ -591,27 +591,17 @@ class ZPyTask_Update(ZPyTaskBase):
             )
         buf.write(distcfg.replace('\0', '\n'))
 
-    #TODO: write out {ident}.json instead!
     @run('python (>= 2)', 'Lib/zippy.%(identifier)s.json',
             raw=True, finder='make_node')
     def run(self, buf):
-        """custom marker + meta-module
+        """custom marker + metadata
         """
-        from textwrap import dedent
-        from inspect import getsource
-
         gen = self.generator
         bld = gen.bld
         zpy = bld.zpy
 
-        zpy_dict = dict(zpy)
-        #TODO: remove once fixed elsewhere...
-        zpy_dict['req'] = dict(
-            (k, str(v))
-            for (k, v) in (zpy_dict.get('req') or dict()).iteritems()
-            )
-
-        buf.write(json.dumps(zpy_dict), flags='wb')
+        zpy.landmark = buf.name
+        buf.write(json.dumps(dict(zpy)), flags='wb')
 
     @run('python (>= 2)', 'Modules/Setup', raw=True, finder='make_node')
     def run(self, buf):
@@ -944,6 +934,12 @@ class ZPyTask_Final(ZPyTaskBase):
 
         offset = len(zpy.o) + 1
         with zipfile.ZipFile(zpy.O_UWSGI, 'a', zipfile.ZIP_DEFLATED) as zfd:
+            #TODO: put in zippy dist/wheel?
+            # pack our meta first
+            zfd.write(
+                pth.join(zpy.pylibdir, zpy.landmark),
+                pth.join(zpy.o_lib_py_site, zpy.landmark)[offset:],
+                )
             for root, dirs, files in os.walk(zpy.o):
                 _d = set(dirs)
                 _f = set(files)
