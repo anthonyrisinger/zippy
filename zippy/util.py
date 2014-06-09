@@ -194,6 +194,7 @@ def init_builtins():
         import __builtin__ as builtins
 
     builtins.pp = deferred(pp, builtins)
+    builtins.I = deferred(I, builtins)
 
 
 def deferred(fun, *args0, **kwds0):
@@ -203,6 +204,28 @@ def deferred(fun, *args0, **kwds0):
         fun.__name__, deferred.__name__.upper(),
         ))
     return deferred
+
+
+def I(builtins):
+    import sys
+    from IPython.frontend.terminal.embed import InteractiveShellEmbed
+    from IPython.frontend.terminal.ipapp import load_default_config
+    from IPython.frontend.terminal.interactiveshell import (
+        TerminalInteractiveShell
+        )
+
+    def I(**kwds):
+        sys.stdin = sys.stdout = open('/dev/tty', mode='r+b')
+        config = kwds.get('config')
+        header = kwds.pop('header', u'')
+        if config is None:
+            config = load_default_config()
+            config.InteractiveShellEmbed = config.TerminalInteractiveShell
+            kwds['config'] = config
+        return InteractiveShellEmbed(**kwds)(header=header, stack_depth=2)
+
+    builtins.I = I
+    return I
 
 
 def pp(builtins):
