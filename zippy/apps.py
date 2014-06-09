@@ -182,6 +182,8 @@ def create_wheel(cache_path):
 
     # drop egg-info
     shutil.rmtree(egginfo)
+    if os.path.exists(pydist.name + '.egg-info'):
+        shutil.rmtree(pydist.name + '.egg-info')
 
     # [over]write metadata 2.x
     pydist.write(path='pydist.json')
