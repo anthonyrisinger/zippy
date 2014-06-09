@@ -30,12 +30,12 @@ __builtins__['I'] = I
 
 __package__ = 'zippy'
 __import__(__package__)
+from .setup import setup
 from .options import options
 from .configure import configure
 from .build import build
 from .test import test
 from .install import install
-from .setup import setup
 
 
 # vim: set noexpandtab:
