@@ -938,7 +938,7 @@ class ZPyTask_Final(ZPyTaskBase):
             # pack our meta first
             zfd.write(
                 pth.join(zpy.pylibdir, zpy.landmark),
-                pth.join(zpy.o_lib_py_site, zpy.landmark)[offset:],
+                pth.join(zpy.o_lib_py, zpy.landmark)[offset:],
                 )
             for root, dirs, files in os.walk(zpy.o):
                 _d = set(dirs)
