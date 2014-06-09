@@ -102,7 +102,8 @@ def zpy_requirements(cnf, *nodes, **ctx):
 
                     link = pth.relpath(url, bld_abspath)
                     dest = pth.join(bld_abspath, dist.key)
-                    os.symlink(link, dest)
+                    if not pth.exists(dest):
+                        os.symlink(link, dest)
 
                     #TODO: build_requires/test_requires/etc/?
                     urldata = dist.run_requires
@@ -193,8 +194,14 @@ def zpy_requirements(cnf, *nodes, **ctx):
     inputs = ctx.setdefault('source', list())
     inputs.extend(dists)
 
+    #FIXME:upstream:waf
+    # workaround to clobbering .wafpickle-* cache
+    dbfile_orig = Context.DBFILE
+    Context.DBFILE = dbfile_orig + '-requirements'
     bld = sub_build(cnf, ctx, logger=cnf.logger)
     bld.compile()
+    Context.DBFILE = dbfile_orig
+
     for grp in bld.groups:
         for gen in grp:
             for tsk in gen.tasks:

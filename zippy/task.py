@@ -414,7 +414,6 @@ class ZPyTask_Requirements(ZPyTaskBase):
         return 0
 
 
-@Task.update_outputs
 class ZPyTask_Patch(ZPyTaskBase):
 
     color = 'CYAN'
@@ -423,6 +422,7 @@ class ZPyTask_Patch(ZPyTaskBase):
 
     x, vars = Task.compile_fun(' '.join([
         '${PATCH}',
+        '--reject-file=-',
         '-Np1',
         '-i',
         '${SRC[0].abspath()}',
