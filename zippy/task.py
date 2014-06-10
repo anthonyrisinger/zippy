@@ -840,7 +840,7 @@ class ZPyTask_Final(ZPyTaskBase):
         incl_files = set()
 
         offset = len(zpy.o) + 1
-        with zipfile.ZipFile(zpy.O_UWSGI, 'a', zipfile.ZIP_DEFLATED) as zfd:
+        with zipfile.ZipFile(zpy.O_PYTHON, 'a', zipfile.ZIP_DEFLATED) as zfd:
             # pack our meta first
             zfd.write(
                 pth.join(zpy.pylibdir, zpy.landmark),
