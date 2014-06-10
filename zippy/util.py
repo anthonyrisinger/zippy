@@ -261,6 +261,10 @@ def normalize_pydist(info):
     distlib = get_module('distlib')
     metadata = get_module('distlib.metadata')
 
+    for k in ('license', 'description'):
+        if k in info and len(info[k]) > 61:
+            info[k] = info[k][0:61] + '...'
+
     ext_details = ('extensions', 'python.details')
     ext_project = ('extensions', 'python.project')
     ext_exports = ('extensions', 'python.exports')

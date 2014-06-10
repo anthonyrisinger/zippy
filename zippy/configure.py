@@ -217,13 +217,6 @@ def zpy_requirements(cnf, *nodes, **ctx):
     bld.compile()
     Context.DBFILE = dbfile_orig
 
-    for grp in bld.groups:
-        for gen in grp:
-            for tsk in gen.tasks:
-                pydist = zpy.dist[tsk.dist.key] = tsk.dist.metadata.dictionary
-                pydist['license'] = '...'
-                pydist['description'] = '...'
-
     python = cnf.zippy_dist_get('python')
     py = cnf.bldnode.find_node('python')
     if py is None:
