@@ -747,7 +747,7 @@ class ZPyTask_Replay(_ZPyTask):
         zpy = bld.zpy
         py = bld.py
 
-        if pth.exists(zpy.o_inc_py):
+        if pth.lexists(zpy.o_inc_py):
             os.unlink(zpy.o_inc_py)
 
         app = list()
