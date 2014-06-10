@@ -70,7 +70,7 @@ class JSONDirectoryLocator(locators.DirectoryLocator):
 # methods/attrs onto classes is *central* to using and understanding waf!
 def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
     env = ctx.env
-    if not hasattr(ctx, 'zippy_dist_find'):
+    if not hasattr(ctx, 'zippy_dist_get'):
         if 'top_xsrc' in env:
             def dist_get(key=None, **kwds):
                 if key and 'mapping' not in kwds:
