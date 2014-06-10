@@ -4,9 +4,6 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import pprint
-pp = pprint.pprint
-
 import sys
 import os
 import glob
@@ -69,8 +66,9 @@ def zpy_requirements(cnf, *nodes, **ctx):
     zpy = cnf.zpy
     opt = zpy.opt
 
-    urls = list()
-    reqts = set()
+    # current directory is zippy
+    urls = ['.']
+    reqts = dict()
     dists = set()
 
     for node in filter(None, nodes):
@@ -83,98 +81,106 @@ def zpy_requirements(cnf, *nodes, **ctx):
 
     urls.reverse()
     bld_abspath = cnf.bldnode.abspath()
-    node = cnf.bldnode.find_or_declare('config.requirements.txt')
-    with open(node.abspath(), mode='a') as fp:
-        while urls:
-            url = urls.pop()
-            urldata = None
+    while urls:
+        url = urls.pop()
+        urldata = None
 
-            if pth.isdir(url):
-                url = pth.relpath(url, zpy.top)
-                path = pth.join(url, metadata.METADATA_FILENAME)
-                if pth.exists(path):
-                    # url is a project dir
-                    dist = database.Distribution(
-                        metadata=metadata.Metadata(path=path),
-                        )
-                    dist.requested = True
-                    dists.add(dist)
+        if pth.isdir(url):
+            url = pth.relpath(url, zpy.top)
+            path = pth.join(url, metadata.METADATA_FILENAME)
+            if pth.exists(path):
+                # url is a project dir
+                dist = database.Distribution(
+                    metadata=metadata.Metadata(path=path),
+                    )
+                dist.requested = True
+                dists.add(dist)
 
-                    link = pth.relpath(url, bld_abspath)
-                    dest = pth.join(bld_abspath, dist.key)
-                    if not pth.exists(dest):
-                        os.symlink(link, dest)
+                link = pth.relpath(url, bld_abspath)
+                dest = pth.join(bld_abspath, dist.key)
+                if not pth.exists(dest):
+                    os.symlink(link, dest)
 
-                    #TODO: build_requires/test_requires/etc/?
-                    urldata = dist.run_requires
+                #TODO: build_requires/test_requires/etc/?
+                urldata = dist.run_requires
 
-            if urldata is None:
-                urldata = urllib.urlopen(url).read().splitlines()
+        if urldata is None:
+            urldata = urllib.urlopen(url).read().splitlines()
 
-            fp.write('# {0}\n'.format(url))
-            for spec in sorted(urldata):
-                spec = spec.strip()
-                if not spec or spec[0]=='#':
-                    continue
+        for spec in sorted(urldata):
+            spec = spec.strip()
+            if not spec or spec[0]=='#':
+                continue
 
+            req = parse_requirement(spec)
+            if not req:
+                continue
+
+            key = req.name.lower()
+            if key in reqts:
+                #FIXME: handle extras/url
+                # merge requirements
+                constraints = reqts[key].constraints + req.constraints
+                constraints = ', '.join(' '.join(c) for c in constraints)
+                spec = '{0} ({1})'.format(req.name, constraints)
                 req = parse_requirement(spec)
-                if not req:
-                    continue
+                req.origin = reqts[key].origins
 
-                fp.write('{0}\n'.format(req.requirement))
-                reqts.add(req.requirement)
+            if not hasattr(req, 'origins'):
+                req.origins = list()
+            req.origins.append(url)
+            reqts[key] = req
+
+    origin = None
+    node = cnf.bldnode.find_or_declare('config.requirements.txt')
+    with open(node.abspath(), mode='w') as fp:
+        for _,_,req in sorted(
+            (req.origins, req.requirement.lower(), req)
+            for req in reqts.values()
+            ):
+            if origin != req.origins:
+                origin = req.origins
+                fp.write('# {0}\n'.format(', '.join(req.origins)))
+            fp.write('{0}\n'.format(req.requirement))
 
     Logs.pprint(None, 'Resolving distributions...')
+    #FIXME: drop Anonymous once cnf.dependency_finder finds local checkouts
     anonymous = make_dist('Anonymous', '1.0')
-    anonymous.metadata.add_requirements(reqts)
+    requirements = tuple(req.requirement for req in reqts.values())
+    anonymous.metadata.add_requirements(requirements)
     hits, probs = cnf.dependency_finder.find(anonymous)
     hits.discard(anonymous)
-    for prob in sorted(probs):
+    for prob in probs:
         if prob[0] != 'unsatisfied':
             probs.discard(prob)
             continue
 
-        prob_req = parse_requirement(prob[1])
-        if prob_req.name == 'dateutil':
+        if prob[1].startswith('dateutil '):
             # bogus dist (should be python-dateutil) referenced by tastypie?
             probs.discard(prob)
             continue
 
     if probs:
-        probs_str = ', '.join(sorted(probs))
-        cnf.fatal('unsatisfied requirements: {0}'.format(probs_str))
+        problems = list()
+        for typ, spec in probs:
+            req = parse_requirement(spec)
+            req = reqts.get(req.name.lower(), req)
+            if not hasattr(req, 'origins'):
+                req.origins = list()
+            for constraint, origin in zip(req.constraints, req.origins):
+                problems.append('{0}: {1} ({2[0]} {2[1]})'.format(
+                    origin,
+                    req.name,
+                    constraint,
+                    ))
+        problem_str = '\n    '.join([''] + problems)
+        cnf.fatal('unsatisfied requirements: {0}'.format(problem_str))
 
     dists.update(hits)
-    if not dists:
-        cnf.fatal('define at least ONE distribution')
-
-    zpy.dist = zpy.dist if 'dist' in zpy else dict()
-    #for key in ('distlib', 'zippy'):
-    for key in ('zippy',):
-        module = __import__(key)
-        pypath = pth.dirname(module.__path__[0])
-        pydist = None
-
-        try:
-            with open(pth.join(pypath, metadata.METADATA_FILENAME)) as fp:
-                pydist = fp.read()
-        except IOError:
-            try:
-                pydist = module.__loader__.get_data(
-                    metadata.METADATA_FILENAME,
-                    )
-            except AttributeError:
-                #TODO: pull from JSONLocator?
-                pass
-
-        assert pydist, 'unable to locate {0}/{1}'.format(
-            key, metadata.METADATA_FILENAME,
-            )
-
-        zpy.dist[key] = json.loads(pydist)
-        dist = cnf.zippy_dist_get(key)
-        dist.requested = True
-        dists.add(dist)
+    zpy.dist.update(
+        (dist.key, dist.metadata.dictionary)
+        for dist in dists
+        )
 
     for dist in sorted(dists, key=operator.attrgetter('key')):
         #FIXME: .format()
@@ -289,6 +295,7 @@ def configure(cnf):
     if zpy.identifier != _ident:
         cnf.fatal('ident MUST be alphanumeric: %r' % _ident)
 
+    zpy.dist = dict()
     zpy.landmark = '{0}.{1}.json'.format(__package__, _ident)
 
     dirs = set((
