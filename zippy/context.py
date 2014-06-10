@@ -37,7 +37,10 @@ class JSONDirectoryLocator(locators.DirectoryLocator):
     def _get_project(self, *args, **kwds):
         dists = super(JSONDirectoryLocator, self)._get_project(*args, **kwds)
         for dist in dists.values():
-            if not dist.source_url or '://' in dist.source_url:
+            if not dist.source_url:
+                continue
+
+            if '://' in dist.source_url and not 'file://' in dist.source_url:
                 continue
 
             pydist = dist.source_url + '.' + metadata.METADATA_FILENAME
