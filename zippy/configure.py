@@ -66,6 +66,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
     zpy = cnf.zpy
     opt = zpy.opt
 
+    #FIXME: drop this once cnf.dependency_finder finds local checkouts
     # current directory is zippy
     urls = ['.']
     reqts = dict()
@@ -129,6 +130,14 @@ def zpy_requirements(cnf, *nodes, **ctx):
             if not hasattr(req, 'origins'):
                 req.origins = list()
             req.origins.append(url)
+            reqts[key] = req
+
+    #FIXME: get zippy here once cnf.dependency_finder finds local checkouts
+    for special in ('Python (>= 2.6, < 3.0)', 'setuptools'):
+        req = parse_requirement(special)
+        key = req.name.lower()
+        if key not in reqts and key not in dists:
+            req.origins = ['(internal)']
             reqts[key] = req
 
     origin = None
@@ -214,9 +223,6 @@ def zpy_requirements(cnf, *nodes, **ctx):
                 pydist = zpy.dist[tsk.dist.key] = tsk.dist.metadata.dictionary
                 pydist['license'] = '...'
                 pydist['description'] = '...'
-
-    if 'python' not in zpy.dist:
-        cnf.fatal('define ONE `python==x.y.z` requirement')
 
     python = cnf.zippy_dist_get('python')
     py = cnf.bldnode.find_node('python')
