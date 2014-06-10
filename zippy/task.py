@@ -22,6 +22,7 @@ from waflib import Build
 from waflib import Task
 
 from .const import PYTHON_MODULES_SETUP
+from .util import normalize_pydist
 from .util import get_module
 
 distlib = get_module('distlib')
@@ -255,104 +256,11 @@ class ZPyTask_Requirements(ZPyTaskBase):
                     os.symlink(whl_sym, whl_dst)
             else:
                 if pth.isfile(meta):
+                    #TODO: needs to use zpy.dist
                     dist.metadata = metadata.Metadata(path=meta)
                 else:
-                    ext_details = ('extensions', 'python.details')
-                    ext_project = ('extensions', 'python.project')
-                    ext_exports = ('extensions', 'python.exports')
-                    ext_commands = ('extensions', 'python.commands')
-                    keymap = {
-                        'metadata_version': None,
-                        'generator': None,
-                        'source_url': None,
-                        'source_label': None,
-                        'download-url': ('source_url',),
-                        'license': ext_details + ('license',),
-                        'keywords': ext_details + ('keywords',),
-                        'classifiers': ext_details + ('classifiers',),
-                        'document_names': ext_details + ('document_names',),
-                        'contacts': ext_project + ('contacts',),
-                        'contributors': ext_project + ('contributors',),
-                        'project_urls': ext_project + ('project_urls',),
-                        'modules': ext_exports + ('modules',),
-                        'namespaces': ext_exports + ('namespaces',),
-                        'exports': ext_exports + ('exports',),
-                        'commands': ext_commands,
-                        'author-email': ext_project + ('contacts', 0, 'email'),
-                        'maintainer-email': ext_project + ('contacts', 1, 'email'),
-                        'author': ext_project + ('contacts', 0, 'name'),
-                        'maintainer': ext_project + ('contacts', 1, 'name'),
-                        'license-file': ext_details + ('document_names', 'license'),
-                        'home-page': ext_project + ('project_urls', 'Home'),
-                        }
-                    keyset = set(
-                        keymap.keys()
-                        + metadata.Metadata.MANDATORY_KEYS.keys()
-                        + metadata.Metadata.DEPENDENCY_KEYS.split()
-                        + metadata.Metadata.INDEX_KEYS.split()
-                        ) - set((
-                            # great! DGAF
-                            'description',
-                            ))
-
-                    pydist = {
-                        'index-metadata': dict(),
-                        'metadata': dict(),
-                        }
-                    pydist.update(
-                        distlib.util.get_package_data(
-                            dist.name,
-                            dist.version,
-                            ) or tuple()
-                        )
-                    pydist['metadata'].update(
-                        dist.metadata.dictionary,
-                        )
-                    index_meta = pydist.pop('index-metadata')
-                    local_meta = pydist.pop('metadata')
-                    pydist.clear()
-
-                    remaps = list()
-                    for key in keyset:
-                        local_value = local_meta.pop(key, None)
-                        index_value = index_meta.pop(key, None)
-
-                        if local_value is None and index_value is None:
-                            continue
-
-                        value = local_value
-                        if index_value and index_value != local_value:
-                            value = index_value
-
-                        if key not in keymap or keymap[key] is None:
-                            pydist[key] = value
-                            continue
-
-                        node = pydist
-                        attrs = keymap[key]
-                        for attr in attrs[:-1]:
-                            node[attr] = node.get(attr) or dict()
-                            if not hasattr(node[attr], 'get'):
-                                node[attr] = dict(enumerate(node[attr]))
-                                remaps.append((node, attr))
-                            node = node[attr]
-                        node[attrs[-1]] = value
-
-                    for node, attr in remaps:
-                        # only `contacts` in here ATM
-                        #TODO: avoid duplicates
-                        if attr == 'contacts':
-                            contacts = list()
-                            for offset, info in sorted(node[attr].items()):
-                                if 'role' not in info:
-                                    role = 'author'
-                                    if offset > 0:
-                                        role = 'maintainer'
-                                    info['role'] = role
-                                contacts.append(info)
-                            node[attr] = contacts
-
-                    pydist['source_url'] = pth.relpath(path, zpy.top)
+                    pydist = normalize_pydist(dist.metadata.dictionary)
+                    pydist.update(source_url=pth.relpath(path, zpy.top))
 
                     with codecs.open(meta, 'w', 'utf-8') as fp:
                         json.dump(
