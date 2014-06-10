@@ -255,25 +255,6 @@ def zpy_requirements(cnf, *nodes, **ctx):
     # touch LANDMARK so PYTHONHOME doesn't need export afterwards
     open(pth.join(zpy.o_lib_py, zpy.landmark), mode='a').close()
 
-    if 'uwsgi' not in zpy.dist:
-        cnf.fatal('define ONE `uWSGI==x.y.z` requirement')
-
-    uwsgi = cnf.zippy_dist_get('uwsgi')
-    u = cnf.bldnode.find_node('uwsgi')
-    if u is None:
-        cnf.fatal('%s does not exist' % uwsgi.name_and_version)
-
-    zpy.u_v = tuple(map(int, uwsgi.version.split('.')))
-    zpy.u_fqn = py_v('u-x.y.z', v=zpy.u_v)
-    zpy.u_v1 = py_v('x', v=zpy.u_v)
-    zpy.u_v2 = py_v('x.y', v=zpy.u_v)
-    zpy.u_v3 = py_v('x.y.z', v=zpy.u_v)
-    zpy.u_ver1 = py_v('ux', v=zpy.u_v)
-    zpy.u_ver2 = py_v('ux.y', v=zpy.u_v)
-    zpy.u_ver3 = py_v('ux.y.z', v=zpy.u_v)
-    zpy.u_ver2_nodot = py_v('uxy', v=zpy.u_v)
-    zpy.uconf['bin_name'] = zpy.O_UWSGI = zpy.O_PYTHON
-
 
 def configure(cnf):
     """core configuration/checks
@@ -299,7 +280,6 @@ def configure(cnf):
 
     dirs = set((
         ('cache', None),
-        ('config', None),
         ('xsrc', 'extern/sources'),
         ))
     for k, v in sorted(dirs):

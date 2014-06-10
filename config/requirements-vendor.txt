@@ -1,4 +1,0 @@
-# vendor/special packages
-Python==2.7.7
-uWSGI==2.0.5.1
-setuptools==4.0.1

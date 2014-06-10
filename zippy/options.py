@@ -42,6 +42,6 @@ def options(opt):
             '--requirements',
             metavar='GLOB',
             action='append',
-            default=['config/requirements*.txt'],
+            default=list(),
             help='guides external embeds [default: %default]',
             )
