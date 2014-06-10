@@ -159,7 +159,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
     anonymous.metadata.add_requirements(requirements)
     hits, probs = cnf.dependency_finder.find(anonymous)
     hits.discard(anonymous)
-    for prob in probs:
+    for prob in list(probs):
         if prob[0] != 'unsatisfied':
             probs.discard(prob)
             continue
