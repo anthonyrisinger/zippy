@@ -811,7 +811,7 @@ class ZPyTask_Final(ZPyTaskBase):
         zpy_file = bld.variant + Build.CACHE_SUFFIX
         zpy.store(pth.join(bld.cache_dir, zpy_file))
         if bld.cmd.endswith('install'):
-            self.more_tasks = install(bld, False)
+            self.more_tasks = get_module('zippy.install').install(bld, False)
         return tuple(), tuple()
 
     def run(self):
