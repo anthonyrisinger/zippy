@@ -4,6 +4,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+#FIXME: need compat.py or...?
+try:
+    import time
+    import zipfile
+except ImportError:
+    pass
+else:
+    #...patch older ZipFile to support 2.7 context manager
+    if not hasattr(zipfile.ZipFile, '__exit__'):
+        zipfile.ZipFile.__enter__ = lambda *s: s[0]
+        zipfile.ZipFile.__exit__ = lambda *s: s[0].close()
+    #...patch older ZipExtFile to support 2.7 context manager
+    if not hasattr(zipfile.ZipExtFile, '__exit__'):
+        zipfile.ZipExtFile.__enter__ = lambda *s: s[0]
+        zipfile.ZipExtFile.__exit__ = lambda *s: s[0].close()
+
 
 def py_v(_p_xyz=None, v=None, _cache=dict()):
     import platform

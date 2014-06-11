@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # encoding: utf-8
 
 from __future__ import division, absolute_import, print_function
@@ -23,22 +24,14 @@ def waf_entry_point(directory=None):
         )
 
 
-try:
-    import time
-    import zipfile
-except ImportError:
-    pass
-else:
-    from . import __dict__ as ns
-    ns['TSTAMP'] = int(time.time())
-    #...patch older ZipFile to support 2.7 context manager
-    if not hasattr(zipfile.ZipFile, '__exit__'):
-        zipfile.ZipFile.__enter__ = lambda *s: s[0]
-        zipfile.ZipFile.__exit__ = lambda *s: s[0].close()
-    #...patch older ZipExtFile to support 2.7 context manager
-    if not hasattr(zipfile.ZipExtFile, '__exit__'):
-        zipfile.ZipExtFile.__enter__ = lambda *s: s[0]
-        zipfile.ZipExtFile.__exit__ = lambda *s: s[0].close()
+if __name__ == '__main__':
+    import sys
+    sys.dont_write_bytecode = True
 
+    import os
+    from datetime import datetime
+    from zippy.util import init_builtins
 
-data = None
+    os.environ['ZIPPY_BUILD'] = datetime.utcnow().strftime('%F-%s')
+    init_builtins()
+    waf_entry_point()
