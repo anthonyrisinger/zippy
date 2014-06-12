@@ -39,14 +39,13 @@ class ZPyCtx_Configure(Configure.ConfigurationContext):
 
     def execute(self):
         rc = super(ZPyCtx_Configure, self).execute()
-        if Configure.autoconfig:
-            zpy = self.zpy
-            if not zpy.req and zpy.opt.get('requirements'):
-                #...user never called cnf.zpy_requirements()
-                self.zpy_requirements(*zpy.opt['requirements'])
-                #...save the config for `install`
-                zpy_file = self.variant + Build.CACHE_SUFFIX
-                zpy.store(pth.join(self.cachedir.abspath(), zpy_file))
+        zpy = self.zpy
+        if not zpy.dist and zpy.opt.get('requirements'):
+            #...user never called cnf.zpy_requirements()
+            self.zpy_requirements(*zpy.opt['requirements'])
+            #...save the config for `install`
+            zpy_file = self.variant + Build.CACHE_SUFFIX
+            zpy.store(pth.join(self.cachedir.abspath(), zpy_file))
         return rc
 
 
