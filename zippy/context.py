@@ -18,13 +18,49 @@ database = get_module('distlib.database')
 metadata = get_module('distlib.metadata')
 locators = get_module('distlib.locators')
 
+import urllib
 import logging
 logger = logging.getLogger(__name__)
 
 
-#TODO: custom python locator
-#class PythonLocator(...):
-#    pass
+class PythonLocator(locators.Locator):
+
+    _distributions = frozenset(('Python',))
+
+    def __init__(self, **kwds):
+        self.avail = dict()
+        self.url = kwds.pop(
+            'url',
+            'http://hg.python.org/cpython/tags?style=raw',
+            )
+        self.source_url = kwds.pop(
+            'source_url',
+            'http://hg.python.org/cpython/archive/{0}.zip',
+            )
+        super(PythonLocator, self).__init__(**kwds)
+
+        fp = urllib.urlopen(self.url)
+        try:
+            for line in fp.readlines():
+                ver, rev = line.strip().split('\t', 2)
+                ver = ver.lstrip('v')
+                if ver and ver[0].isdigit():
+                    dist = database.make_dist(
+                        'Python', ver, summary='Placeholder for summary',
+                        )
+                    dist.metadata.source_url = self.source_url.format(rev)
+                    self.avail[ver] = dist
+        finally:
+            fp.close()
+
+    def _get_project(self, name):
+        if name.title() not in self._distributions:
+            return dict()
+
+        return self.avail
+
+    def get_distribution_names(self):
+        return self._distributions
 
 
 #TODO: custom aggregating locator
@@ -85,8 +121,10 @@ def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
             ctx.zippy_dist_get = dist_get
 
             ctx.aggregating_locator = locators.AggregatingLocator(
-                # extern/sources/*.pydist.json
+                # eg. extern/sources/*.pydist.json
                 JSONDirectoryLocator(env.top_xsrc, recursive=False),
+                # eg. http://hg.python.org/cpython/archive/tip.zip
+                PythonLocator(),
                 # eg. https://www.red-dove.com/pypi/projects/U/uWSGI/
                 locators.JSONLocator(),
                 # eg. https://pypi.python.org/simple/uWSGI/

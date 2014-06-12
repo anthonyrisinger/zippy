@@ -224,6 +224,11 @@ class ZPyTask_Requirements(ZPyTaskBase):
         # from a filename, even if metadata is loaded later!
         #FIXME: upstream fix to above...
         name = name.replace(dist.key, dist.name, 1)
+        if dist.name not in name:
+            # probably a hash
+            ext = name[name.find('.'):]
+            if len(ext) > 1:
+                name = dist.metadata.name_and_version + ext
         # no raison other than consistency
         if name.endswith('.tgz'):
             name = name[:-4] + '.tar.gz'
