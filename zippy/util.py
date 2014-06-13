@@ -119,11 +119,15 @@ def update_syspath(paths, alternates=False):
     return syspath
 
 
+def is_zippy_build():
+    return 'ZIPPY_BUILD' in os.environ
+
+
 def site(module, ident):
     init_builtins()
 
     sys.zippy = zippy
-    building = 'ZIPPY_BUILD' in os.environ
+    building = is_zippy_build()
 
     #TODO: APP_BASE/__PATH__/__path__
     if not building and sys.prefix == sys.executable:
