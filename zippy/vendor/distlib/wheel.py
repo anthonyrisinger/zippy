@@ -85,7 +85,7 @@ NAME_VERSION_RE = re.compile(r'''
 ''', re.IGNORECASE | re.VERBOSE)
 
 SHEBANG_RE = re.compile(br'\s*#![^\r\n]*')
-SHEBANG_DETAIL_RE = re.compile(br'(\s*#!("[^"]+"|[\w/\\:.]+))\s+(.*)$')
+SHEBANG_DETAIL_RE = re.compile(br'(\s*#!("[^"]+"|\S+))\s+(.*)$')
 SHEBANG_PYTHON = b'#!python'
 
 if os.sep == '/':
