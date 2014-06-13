@@ -40,7 +40,7 @@ class ZPyCtx_Configure(Configure.ConfigurationContext):
     def execute(self):
         rc = super(ZPyCtx_Configure, self).execute()
         zpy = self.zpy
-        if not zpy.dist and zpy.opt.get('requirements'):
+        if not zpy.dist:
             #...user never called cnf.zpy_requirements()
             self.zpy_requirements(*zpy.opt['requirements'])
             #...save the config for `install`
@@ -75,9 +75,6 @@ def zpy_requirements(cnf, *nodes, **ctx):
         for url in sorted(glob.glob(node)) or [node]:
             if url and url not in urls:
                 urls.append(url)
-
-    if not urls:
-        cnf.fatal('define at least ONE requirement url')
 
     urls.reverse()
     bld_abspath = cnf.bldnode.abspath()
