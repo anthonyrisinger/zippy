@@ -4,6 +4,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import zippy
+import sys
+import os
+
 #FIXME: need compat.py or...?
 try:
     import time
@@ -75,9 +79,6 @@ def sub_build(ctx, *args, **kwds):
 
 
 def update_syspath(paths, alternates=False):
-    import sys
-    import os
-
     if not paths:
         return sys.path
 
@@ -121,10 +122,6 @@ def update_syspath(paths, alternates=False):
 def site(module, ident):
     init_builtins()
 
-    import os
-    import sys
-    import zippy
-
     sys.zippy = zippy
     building = 'ZIPPY_BUILD' in os.environ
 
@@ -138,7 +135,7 @@ def site(module, ident):
     reload(module)
 
     if building:
-        import zippy.l4sh
+        __import__('zippy.l4sh')
 
     # HACKZILLA!
     # python will prepend the current directory to sys.path, from C code
@@ -162,7 +159,6 @@ def site(module, ident):
 def normalize_syspath(syspath, cwd=''):
     cwds = set(('', '.', cwd))
     if not cwd:
-        import os
         cwds.add(os.getcwd())
 
     sysset = set(syspath)
@@ -223,7 +219,6 @@ def deferred(fun, *args0, **kwds0):
 
 
 def I(builtins):
-    import sys
     from IPython.frontend.terminal.embed import InteractiveShellEmbed
     from IPython.frontend.terminal.ipapp import load_default_config
     from IPython.frontend.terminal.interactiveshell import (
@@ -245,8 +240,6 @@ def I(builtins):
 
 
 def pp(builtins):
-    import sys
-
     try:
         from pprint import pprint
     except ImportError:
