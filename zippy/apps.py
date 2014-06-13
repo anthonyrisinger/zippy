@@ -89,8 +89,8 @@ def create_wheel(cache_path):
     sys.argv[:] = (
         'setup.py'
         '\0build'
-        '\0--build-base'
-        '\0{paths[buildbase]}'
+        '\0--build-base={paths[buildbase]}'
+        '\0--executable=python'
         '\0install'
         '\0--single-version-externally-managed'
         '\0--record={sections[prefix]}/installed-files.txt'

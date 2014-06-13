@@ -665,6 +665,8 @@ class ZPyTask_Distribution(ZPyTaskBase):
         py = bld.py
         rv = 0
 
+        env.env['_PYTHON_PROJECT_BASE'] = 'x'
+
         dist = self.dist
         if getattr(self, 'cwd', None) is None:
             self.cwd = pth.join(bld.bldnode.abspath(), dist.key)
