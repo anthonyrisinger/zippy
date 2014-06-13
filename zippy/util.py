@@ -153,6 +153,10 @@ def site(module, ident):
             sys.settrace(tracer_orig)
             syspath = normalize_syspath(sys.path)
             sys.path[:] = syspath
+            if building:
+                m_file = frame.f_globals.get('__file__') or str()
+                if m_file.strip('co').endswith('compileall.py'):
+                    raise SystemExit(0)
 
     tracer_orig = sys.gettrace()
     sys.settrace(tracer)
