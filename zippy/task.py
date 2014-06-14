@@ -845,7 +845,6 @@ class ZPyTask_Final(ZPyTaskBase):
         #...used to filter stdlib
         drop_dir = set()
         drop_ext = set(('.a', '.o', '.in', '.pyo', '.pyc', '.exe'))
-        incl_files = set()
 
         offset = len(zpy.o) + 1
         with zipfile.ZipFile(zpy.O_PYTHON, 'a', zipfile.ZIP_DEFLATED) as zfd:
@@ -877,5 +876,5 @@ class ZPyTask_Final(ZPyTaskBase):
 
                 for f in sorted(_f):
                     path = pth.join(root, f)
-                    if f in incl_files or f in msk:
+                    if f in msk:
                         zfd.write(path, path[offset:])
