@@ -220,9 +220,12 @@ def create_wheel(cache_path):
         sections[k] = subst_vars(v, info)
 
     maker = scripts.ScriptMaker(None, None)
-    #maker.clobber = True
+    # supercede setuptools version
+    maker.clobber = True
     maker.executable = 'python'
-    #maker.variants = set(('', 'X', 'X.Y'))
+    #TODO: go back to multi-version?
+    # no point in versioning bin right now...
+    maker.variants = set(('',))
     whl.install(sections, maker)
 
     #FIXME
