@@ -459,17 +459,25 @@ class ZPyTask_Update(ZPyTaskBase):
             ).format(zpy=zpy)
         buf.write(src)
 
-    @run('python (>= 2)', 'Modules/expat', raw=True)
+    @run('python (>= 2)', 'Modules', raw=True)
     def run(self, buf):
-        """remove local nodes to ensure dynamic, system-level linking
+        """remove test dirs/etc
         """
-        shutil.rmtree(buf.abspath(), ignore_errors=True)
+        lib = buf.abspath()
+        drop_any = set()
+        drop_top = set(('zlib', 'expat')) | drop_any
+        for ent in drop_top:
+            shutil.rmtree(pth.join(lib, ent), ignore_errors=True)
+        if not drop_any:
+            return
 
-    @run('python (>= 2)', 'Modules/zlib', raw=True)
-    def run(self, buf):
-        """remove local nodes to ensure dynamic, system-level linking
-        """
-        shutil.rmtree(buf.abspath(), ignore_errors=True)
+        for root, dirs, files in os.walk(lib):
+            sdirs = set(dirs)
+            tests = sdirs & drop_any
+            for ent in tests:
+                shutil.rmtree(pth.join(root, ent), ignore_errors=True)
+            if tests:
+                dirs[:] = sorted(sdirs - tests)
 
     @run('python (>= 2)', 'Lib', raw=True)
     def run(self, buf):
@@ -480,6 +488,9 @@ class ZPyTask_Update(ZPyTaskBase):
         drop_top = set(('lib-tk', 'idlelib', 'bsddb')) | drop_any
         for ent in drop_top:
             shutil.rmtree(pth.join(lib, ent), ignore_errors=True)
+        if not drop_any:
+            return
+
         for root, dirs, files in os.walk(lib):
             sdirs = set(dirs)
             tests = sdirs & drop_any
