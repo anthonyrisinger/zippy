@@ -499,22 +499,6 @@ class ZPyTask_Update(ZPyTaskBase):
             if tests:
                 dirs[:] = sorted(sdirs - tests)
 
-    @run('python (>= 2)', 'Lib/distutils/distutils.cfg',
-            raw=True, finder='make_node')
-    def run(self, buf):
-        """temp distutils.cfg to control easy_install and bdist
-        """
-        zpy = self.generator.bld.zpy
-        distcfg = (
-            '# ident: {zpy.identifier}'
-            '\0[global]'
-            '\0verbose=1'
-            '\0[install]'
-            '\0compile=0'
-            '\0'.format(**locals())
-            )
-        buf.write(distcfg.replace('\0', '\n'))
-
     @run('python (>= 2)', 'Lib/%(landmark)s',
             raw=True, finder='make_node')
     def run(self, buf):
