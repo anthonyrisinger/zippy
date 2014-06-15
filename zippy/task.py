@@ -437,7 +437,7 @@ class ZPyTask_Update(ZPyTaskBase):
             buf = pat.sub(sub, buf)
         return buf
 
-    @run('python (>= 2)', 'Lib/site.py', raw=True, finder='make_node')
+    @run('python (>= 2)', 'Lib/site.py', raw=True)
     def run(self, buf):
         """misc services during/after build
         """
@@ -884,8 +884,6 @@ class ZPyTask_Final(ZPyTaskBase):
                     msk -= blk
                 dirs[:] = sorted(_d & msk)
                 files[:] = sorted(_f & msk)
-
-                for f in sorted(_f):
+                for f in files:
                     path = pth.join(root, f)
-                    if f in msk:
-                        zfd.write(path, path[offset:])
+                    zfd.write(path, path[offset:])
