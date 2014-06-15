@@ -601,10 +601,14 @@ class ZPyTask_Profile(_ZPyTask):
         bld = gen.bld
         zpy = bld.zpy
         py = bld.py
+        phase = 'profile-opt'
+        if pth.exists(self._cache_prof):
+            phase = 'build_all_use_profile'
 
         #env.env['PYTHONVERBOSE'] = 'x'
 
-        app = [(
+        app = list()
+        app.append(
             './configure'
             '\0--cache-file={tsk._cache_conf}'
             '\0--prefix=/@/{zpy.identifier}'
@@ -614,40 +618,12 @@ class ZPyTask_Profile(_ZPyTask):
             '\0--with-dbmliborder=gdbm'
             '\0--with-threads'
             '\0--with-system-expat'
-            )]
-
+            )
         app.append(
-            'make\0PR0F={tsk._cache_prof}\0' + (
-                'build_all_use_profile'
-                if pth.exists(self._cache_prof)
-                else 'profile-opt'
-                ))
-
-        def _sysconfigdata(tsk):
-            from pprint import pformat
-            class _auto_format(str):
-                def __repr__(self):
-                    v = '/@/' + zpy.identifier
-                    s = super(_auto_format, self).__repr__()
-                    if v in s:
-                        s = s.replace(v, '{sys.prefix}') + '.format(**locals())'
-                    return s
-            _path = pth.join(zpy.pybuilddir, '_sysconfigdata.py')
-            with open(_path, mode='r+') as fp:
-                ns = dict()
-                exec fp.read() in ns
-                ns = ns.pop('build_time_vars')
-                for k, v in ns.iteritems():
-                    if isinstance(v, basestring):
-                        ns[k] = _auto_format(v)
-                fp.seek(0)
-                fp.truncate(0)
-                fp.write('import sys\n')
-                fp.write('build_time_vars = ')
-                fp.write(pformat(ns))
-                return 0
-            return 1
-        app.append(_sysconfigdata)
+            '{zpy.MAKE}'
+            '\0PR0F={tsk._cache_prof}'
+            '\0' + phase
+            )
 
         return app
 
@@ -769,35 +745,15 @@ class ZPyTask_Replay(_ZPyTask):
             os.unlink(zpy.o_inc_py)
 
         app = list()
-        app.append('{zpy.MAKE}\0{zpy.o_stlib}')
-
-        def _sysconfigdata(tsk):
-            from pprint import pformat
-            class _auto_format(str):
-                def __repr__(self):
-                    v = '/@/' + zpy.identifier
-                    s = super(_auto_format, self).__repr__()
-                    if v in s:
-                        s = s.replace(v, '{sys.prefix}') + '.format(**locals())'
-                    return s
-            _path = pth.join(zpy.pybuilddir, '_sysconfigdata.py')
-            with open(_path, mode='r+') as fp:
-                ns = dict()
-                exec fp.read() in ns
-                ns = ns.pop('build_time_vars')
-                for k, v in ns.iteritems():
-                    if isinstance(v, basestring):
-                        ns[k] = _auto_format(v)
-                fp.seek(0)
-                fp.truncate(0)
-                fp.write('import sys\n')
-                fp.write('build_time_vars = ')
-                fp.write(pformat(ns))
-                return 0
-            return 1
-        app.append(_sysconfigdata)
-
-        app.append('{zpy.MAKE}\0DESTDIR=..\0install')
+        app.append(
+            '{zpy.MAKE}'
+            '\0{zpy.o_stlib}'
+            )
+        app.append(
+            '{zpy.MAKE}'
+            '\0DESTDIR={tsk.generator.bld.out_dir}'
+            '\0install'
+            )
         return app
 
 
@@ -859,11 +815,6 @@ class ZPyTask_Final(ZPyTaskBase):
 
         offset = len(zpy.o) + 1
         with zipfile.ZipFile(zpy.O_PYTHON, 'a', zipfile.ZIP_DEFLATED) as zfd:
-            # pack our meta first
-            zfd.write(
-                pth.join(zpy.pylibdir, zpy.landmark),
-                pth.join(zpy.o_lib_py, zpy.landmark)[offset:],
-                )
             for root, dirs, files in os.walk(zpy.o):
                 _d = set(dirs)
                 _f = set(files)
