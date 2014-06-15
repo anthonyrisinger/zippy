@@ -417,6 +417,11 @@ class ZPyTask_Update(ZPyTaskBase):
             buf = pat.sub(sub, buf)
         return buf
 
+    @run('python (>= 2)', 'Misc/python-config.in')
+    def run(self, buf):
+        """@EXENAME@ -> #!python"""
+        return buf.replace('@EXENAME@', 'python', 1)
+
     @run('python (>= 2)', 'Makefile.pre.in')
     def run(self, buf):
         """libpythonX.Y.a object glob; default PREFIX to sys.executable
@@ -430,7 +435,6 @@ class ZPyTask_Update(ZPyTaskBase):
             (r"_(MODOBJS)_", r"\g<0>\n\g<1>+=$(wildcard %s)" % l4sh),
             (r"(-D(EXEC_)?PREFIX)='[^']*'", r"\g<1>='progpath' %s" % dlm),
             (r"-fprofile-(generate|use)",   r"\g<0>=$(PR0F)"),
-            (r"(@EXENAME@,)[^/]*",   r"\g<1>%s" % zpy.BINDIR),
             ]
         for pat, sub in patterns:
             pat = re.compile(pat, flags=re.MULTILINE)
