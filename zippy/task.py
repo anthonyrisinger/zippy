@@ -382,6 +382,8 @@ class ZPyTask_Update(ZPyTaskBase):
             (r"^.*SQLITE_OMIT_LOAD_EXTENSION.*$\n?",    r""),
             #TODO: needs upstreaming!
             (r"(longest = max\()\[", r"\g<1>0,0,*["),
+            # do not install useless stuff to bin
+            (r"(\bscripts *= *\[)[^]]*(\])", "\g<1>\g<2>"),
             ]
         for pat, sub in patterns:
             pat = re.compile(pat, flags=re.MULTILINE)
