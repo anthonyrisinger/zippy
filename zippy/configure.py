@@ -283,7 +283,7 @@ def configure(cnf):
         zpy[key] = cnf.find_file(v or k, zpy.top)
 
     #...use default name until we actually need multiple builds
-    _o = cnf.bldnode.make_node('@/' + _ident)
+    _o = cnf.bldnode.make_node('--')
     zpy.o = _o.abspath()
     zpy.o_bin = _o.make_node('bin').abspath()
     zpy.o_lib = _o.make_node('lib').abspath()

@@ -104,7 +104,7 @@ def create_wheel(cache_path):
     #TODO: drop this!
     # install setuptools directly
     if pydist.name == 'setuptools':
-        sys.argv[sys.argv.index('install')+1:] = []
+        sys.argv[sys.argv.index('install')+3:] = []
 
     for impl in (
         'setup.cpyext.py',

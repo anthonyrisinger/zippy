@@ -400,7 +400,6 @@ class ZPyTask_Update(ZPyTaskBase):
         zpy = bld.zpy
         ver = zpy.py_ver2
         patterns = [
-            ('"python"',    '"%s/%s"' % (pfx, ver)),
             ('^(int Py_(DontWriteBytecode|Frozen)Flag)[^;]*', '\g<1> = 1'),
             ('^(int Py_NoUserSiteDirectory)[^;]*',        '\g<1> = 1'),
             #('^(int Py_HashRandomizationFlag)[^;]*',    '\g<1> = 1'),
@@ -602,9 +601,9 @@ class ZPyTask_Profile(_ZPyTask):
 
         app = list()
         app.append(
-            './configure'
+            '{tsk.cwd}/configure'
+            '\0--prefix=/'
             '\0--cache-file={tsk._cache_conf}'
-            '\0--prefix=/@/{zpy.identifier}'
             '\0--enable-ipv6'
             '\0--enable-unicode=ucs4'
             '\0--enable-loadable-sqlite-extensions'
@@ -744,7 +743,7 @@ class ZPyTask_Replay(_ZPyTask):
             )
         app.append(
             '{zpy.MAKE}'
-            '\0DESTDIR={tsk.generator.bld.out_dir}'
+            '\0DESTDIR={zpy.o}'
             '\0install'
             )
         return app
