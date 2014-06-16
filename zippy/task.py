@@ -165,6 +165,9 @@ class _ZPyTask(ZPyTaskBase):
                     app.strip('\0').split('\0'),
                     cwd=self.cwd,
                     env=env.env or None,
+                    #TODO: use tee handler for term + logs?
+                    #stdout=None,
+                    #stderr=-2,
                     )
 
         return ret
