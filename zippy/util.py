@@ -213,20 +213,21 @@ def init_builtins():
     except ImportError:
         import __builtin__ as builtins
 
-    builtins.pp = deferred(pp, builtins)
-    builtins.I = deferred(I, builtins)
+    builtins.pp = deferred(builtin_pp, builtins)
+    builtins.I = deferred(builtin_I, builtins)
 
 
 def deferred(fun, *args0, **kwds0):
     def deferred(*args1, **kwds1):
         return fun(*args0, **kwds0)(*args1, **kwds1)
     deferred.__name__ = ':'.join((
-        fun.__name__, deferred.__name__.upper(),
+        fun.__name__.split('_', 1)[-1],
+        deferred.__name__,
         ))
     return deferred
 
 
-def I(builtins):
+def builtin_I(builtins):
     from IPython.frontend.terminal.embed import InteractiveShellEmbed
     from IPython.frontend.terminal.ipapp import load_default_config
     from IPython.frontend.terminal.interactiveshell import (
@@ -247,7 +248,7 @@ def I(builtins):
     return I
 
 
-def pp(builtins):
+def builtin_pp(builtins):
     try:
         from pprint import pprint
     except ImportError:
