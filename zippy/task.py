@@ -829,4 +829,15 @@ class ZPyTask_Final(ZPyTaskBase):
                 files[:] = sorted(_f & msk)
                 for f in files:
                     path = pth.join(root, f)
+                    if root == zpy.o_bin:
+                        with open(path, 'r+b') as fp:
+                            shebang = fp.read(8)
+                            if shebang == b'#!python':
+                                shebang = b'#!' + os.path.join(
+                                    zpy.PREFIX, 'bin', 'python',
+                                    )
+                                #FIXME: horribly inefficient
+                                data = shebang + fp.read()
+                                fp.seek(0)
+                                fp.write(data)
                     zfd.write(path, path[offset:])
