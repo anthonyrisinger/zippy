@@ -141,6 +141,11 @@ def site(module, ident):
     if building:
         __import__('zippy.l4sh')
 
+    # setup forward-to-bin
+    import runpy
+    runpy._run_module_as_main_orig = runpy._run_module_as_main
+    runpy._run_module_as_main = _run_module_as_main
+
     # HACKZILLA!
     # python will prepend the current directory to sys.path, from C code
     # (PySys_SetArgv), while setting sys.argv... but this happens AFTER
@@ -162,6 +167,28 @@ def site(module, ident):
     sys.settrace(tracer)
 
     return module
+
+
+def _run_module_as_main(mod_name, alter_argv=True):
+    import zipimport
+    import runpy
+
+    #TODO: handle names with `.` and without `.py`
+    if mod_name.startswith('bin.'):
+        m_bin = sys.modules.get('bin')
+        if m_bin is None:
+            m_bin = type(sys)('bin')
+            m_bin = sys.modules[m_bin.__name__] = m_bin
+            m_bin.__path__ = [sys.executable + '/bin']
+            m_bin.__file__ = m_bin.__path__[0] + '/__init__.py'
+        if not hasattr(m_bin, '__loader__'):
+            loader = sys.path_importer_cache.get(sys.executable)
+            if loader is None:
+                loader = zipimport.zipimporter(sys.executable)
+                sys.path_importer_cache[sys.executable] = loader
+            m_bin.__loader__ = loader
+
+    return runpy._run_module_as_main_orig(mod_name, alter_argv)
 
 
 def normalize_syspath(syspath, cwd=''):
