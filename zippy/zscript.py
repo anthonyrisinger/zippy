@@ -97,8 +97,6 @@ def waf_entry_point(directory=None):
         if Logs.verbose > 1:
             Logs.pprint('RED', e.verbose_msg)
         Logs.error(e.msg)
-        import traceback
-        traceback.print_stack()
         return 1
     except SystemExit:
         raise
