@@ -1,19 +1,27 @@
 {
   "author": "C Anthony Risinger", 
   "author-email": "c@anthonyrisinger.com", 
-  "classifiers": [
-    "Development Status :: 3 - Alpha", 
-    "Programming Language :: Python", 
-    "Programming Language :: Python :: 2", 
-    "Programming Language :: Python :: 3", 
-    "Programming Language :: Python :: Implementation"
-  ], 
-  "description": "To be defined", 
-  "home-page": "http://zippy.systems/", 
-  "maintainer": "C Anthony Risinger", 
-  "maintainer-email": "c@anthonyrisinger.com", 
+  "extensions": {
+    "python.details": {
+      "classifiers": [
+        "Development Status :: 3 - Alpha", 
+        "Programming Language :: Python", 
+        "Programming Language :: Python :: 2", 
+        "Programming Language :: Python :: 3", 
+        "Programming Language :: Python :: Implementation"
+      ], 
+      "license": "BSD"
+    }, 
+    "python.project": {
+      "project_urls": {
+        "Home": "http://zippy.systems/"
+      }
+    }
+  }, 
+  "extras": [], 
+  "generator": "distlib (0.1.9)", 
   "metadata_version": "2.0", 
   "name": "zippy", 
-  "summary": "To be defined", 
+  "summary": "Python App/Installer Generator", 
   "version": "0.6.1"
 }
