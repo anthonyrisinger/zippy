@@ -880,5 +880,6 @@ class ZPyTask_Final(ZPyTaskBase):
                                 #FIXME: horribly inefficient
                                 data = shebang + fp.read()
                                 fp.seek(0)
+                                fp.truncate()
                                 fp.write(data)
                     zfd.write(path, path[offset:])
