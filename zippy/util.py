@@ -279,9 +279,9 @@ def normalize_pydist(info):
     distlib = get_module('distlib')
     metadata = get_module('distlib.metadata')
 
-    for k in ('license', 'description'):
-        if k in info and len(info[k]) > 61:
-            info[k] = info[k][0:61] + '...'
+    #for k in ('license', 'description'):
+    #    if k in info and len(info[k]) > 61:
+    #        info[k] = info[k][0:61] + '...'
 
     ext_details = ('extensions', 'python.details')
     ext_project = ('extensions', 'python.project')
@@ -304,11 +304,11 @@ def normalize_pydist(info):
         'namespaces': ext_exports + ('namespaces',),
         'exports': ext_exports + ('exports',),
         'commands': ext_commands,
-        'author-email': ext_project + ('contacts', 0, 'email'),
-        'maintainer-email': ext_project + ('contacts', 1, 'email'),
-        'author': ext_project + ('contacts', 0, 'name'),
-        'maintainer': ext_project + ('contacts', 1, 'name'),
-        'license-file': ext_details + ('document_names', 'license'),
+        #'author-email': ext_project + ('contacts', 0, 'email'),
+        #'maintainer-email': ext_project + ('contacts', 1, 'email'),
+        #'author': ext_project + ('contacts', 0, 'name'),
+        #'maintainer': ext_project + ('contacts', 1, 'name'),
+        #'license-file': ext_details + ('document_names', 'license'),
         'home-page': ext_project + ('project_urls', 'Home'),
         }
     keyset = set(
