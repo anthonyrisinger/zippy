@@ -9,7 +9,6 @@ from __future__ import print_function
 import sys, os
 
 import json
-import urllib
 from functools import partial
 from waflib import ConfigSet, Context
 
@@ -17,10 +16,28 @@ from .util import get_module
 database = get_module('distlib.database')
 metadata = get_module('distlib.metadata')
 locators = get_module('distlib.locators')
+compat = get_module('distlib.compat')
 
-import urllib
 import logging
 logger = logging.getLogger(__name__)
+
+import urllib2
+from base64 import b64encode
+
+
+def open(self, *args, **kwds):
+    request = compat.Request(*args, **kwds)
+    if self.username or self.password:
+        request.add_header('Authorization', 'Basic ' + b64encode(
+            (self.username or '') + ':' + (self.password or '')
+            ))
+    fp = self.opener.open(request)
+    return fp
+locators.Locator.username = None
+locators.Locator.password = None
+locators.Locator.open = open
+# unmask builtin
+del open
 
 
 class PythonLocator(locators.Locator):
@@ -39,7 +56,7 @@ class PythonLocator(locators.Locator):
             )
         super(PythonLocator, self).__init__(**kwds)
 
-        fp = urllib.urlopen(self.url)
+        fp = self.open(self.url)
         try:
             for line in fp.readlines():
                 ver, rev = line.strip().split('\t', 2)
@@ -85,7 +102,7 @@ class JSONDirectoryLocator(locators.DirectoryLocator):
 
             pydist = dist.source_url + '.' + metadata.METADATA_FILENAME
             try:
-                pydist = urllib.urlopen(pydist).read()
+                pydist = self.open(pydist).read()
             except IOError:
                 logger.warn('missing {0} for {1}'.format(
                     metadata.METADATA_FILENAME,
