@@ -4,9 +4,6 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import pprint
-pp = pprint.pprint
-
 import sys, os, logging
 import time, re, shutil, glob
 
