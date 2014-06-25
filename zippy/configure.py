@@ -65,7 +65,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
     zpy = cnf.zpy
     opt = zpy.opt
 
-    #FIXME: drop this once cnf.dependency_finder finds local checkouts
+    #FIXME: drop this once cnf.dependency_finder handles direct refs
     # current directory is zippy
     urls = ['.']
     reqts = dict()

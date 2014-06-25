@@ -65,7 +65,11 @@ class PythonLocator(locators.Locator):
 
 #TODO: custom aggregating locator
 #class CleanAggregatingLocator(...):
-#    pass
+#    ...
+#    dist.metadata._legacy = None
+#    dist.metadata._data = pydist
+#    dist.name = dist.metadata.name
+#    ...
 
 
 class JSONDirectoryLocator(locators.DirectoryLocator):
