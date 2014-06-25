@@ -172,12 +172,16 @@ def zpy_requirements(cnf, *nodes, **ctx):
             req = reqts.get(req.name.lower(), req)
             if not hasattr(req, 'origins'):
                 req.origins = list()
-            for constraint, origin in zip(req.constraints, req.origins):
-                problems.append('{0}: {1} ({2[0]} {2[1]})'.format(
-                    origin,
-                    req.name,
-                    constraint,
-                    ))
+            for i, origin in enumerate(req.origins):
+                constraint = None
+                problem = '{0}: {1}'.format(origin, req.name)
+                if req.url:
+                    constraint = ('from', req.url)
+                elif req.constraints and len(req.constraints) > i:
+                    constraint = req.constraints[i]
+                if constraint:
+                    problem += ' ({0} {1})'.format(*constraint)
+                problems.append(problem)
         problem_str = '\n    '.join([''] + problems)
         cnf.fatal('unsatisfied requirements: {0}'.format(problem_str))
 
