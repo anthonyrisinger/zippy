@@ -85,6 +85,7 @@ class GlobLocator(locators.Locator):
 
     def __init__(self, **kwds):
         #TODO: pass ref to ctx
+        self.nodes = dict()
         self.distributions = dict()
         self.url = kwds.pop('url', None)
         self.ctx = kwds.pop('ctx', None)
@@ -111,22 +112,24 @@ class GlobLocator(locators.Locator):
                     }
 
                 dist_node = self.ctx.bldnode.make_node(str(node))
-                dist_path = dist_node.abspath()
-                if not os.path.exists(dist_path):
-                    link = node.path_from(self.ctx.bldnode)
-                    try:
-                        # clear broken symlinks
-                        os.unlink(dist_path)
-                    except OSError:
-                        pass
-                    finally:
-                        os.symlink(link, dist_path)
+                nodes = self.nodes[dist.name] = (node, dist_node)
 
     def _get_project(self, name):
         if name not in self.distributions:
             return dict()
 
         info = self.distributions[name]
+        node, dist_node = self.nodes[dist.name]
+        dist_path = dist_node.abspath()
+        if not os.path.exists(dist_path):
+            link = node.path_from(self.ctx.bldnode)
+            try:
+                # clear broken symlinks
+                os.unlink(dist_path)
+            except OSError:
+                pass
+            finally:
+                os.symlink(link, dist_path)
         return info
 
     def get_distribution_names(self):
