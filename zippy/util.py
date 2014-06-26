@@ -214,6 +214,7 @@ def init_builtins():
         import __builtin__ as builtins
 
     builtins.pp = deferred(builtin_pp, builtins)
+    builtins.pl = deferred(builtin_pl, builtins)
     builtins.I = deferred(builtin_I, builtins)
 
 
@@ -272,6 +273,17 @@ def builtin_pp(builtins):
 
     builtins.pp = pp
     return pp
+
+
+def builtin_pl(builtins):
+    def pl(strict=True):
+        offset = 1 + (not pl.ok)
+        pp(sys._getframe(offset).f_locals)
+        pl.ok = True
+    pl.ok = False
+
+    builtins.pl = pl
+    return pl
 
 
 def normalize_pydist(info):
