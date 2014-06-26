@@ -29,15 +29,22 @@ def options(opt):
             )
     grp.add_option(
             '--identifier',
-            metavar='IDENT',
+            metavar='HEX',
             action='store',
             default=_ident,
             help='variant identifier [default: %default]',
             )
     grp.add_option(
             '--requirements',
-            metavar='GLOB',
+            metavar='URL',
             action='append',
             default=list(),
-            help='guides external embeds [default: %default]',
+            help='guides external embeds',
+            )
+    grp.add_option(
+            '--locator',
+            metavar='URL',
+            action='append',
+            default=list(),
+            help='prepends *Locator(URI) to the resolver',
             )
