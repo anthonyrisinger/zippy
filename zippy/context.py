@@ -119,7 +119,7 @@ class GlobLocator(locators.Locator):
             return dict()
 
         info = self.distributions[name]
-        node, dist_node = self.nodes[dist.name]
+        node, dist_node = self.nodes[name]
         dist_path = dist_node.abspath()
         if not os.path.exists(dist_path):
             link = node.path_from(self.ctx.bldnode)
