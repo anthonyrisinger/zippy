@@ -745,26 +745,28 @@ def _get_external_data(url):
         # using a custom redirect handler.
         resp = urlopen(url)
         headers = resp.info()
-        reader = codecs.getreader('utf-8')(resp)
-        #data = reader.read().decode('utf-8')
-        #result = json.loads(data)
-        result = json.load(reader)
+        if headers.get('Content-Type') != 'application/json':
+            logger.debug('Unexpected response for JSON request')
+        else:
+            reader = codecs.getreader('utf-8')(resp)
+            #data = reader.read().decode('utf-8')
+            #result = json.loads(data)
+            result = json.load(reader)
     except Exception as e:
         logger.exception('Failed to get external data for %s: %s', url, e)
     return result
 
 
 def get_project_data(name):
-    url = ('http://pydist.it.corp/pypi/projects/'
+    url = ('https://www.red-dove.com/pypi/projects/'
            '%s/%s/project.json' % (name[0].upper(), name))
     result = _get_external_data(url)
     return result
 
 def get_package_data(name, version):
-    url = ('http://pydist.it.corp/pypi/projects/'
+    url = ('https://www.red-dove.com/pypi/projects/'
            '%s/%s/package-%s.json' % (name[0].upper(), name, version))
-    result = _get_external_data(url)
-    return result
+    return _get_external_data(url)
 
 
 class Cache(object):
