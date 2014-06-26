@@ -21,6 +21,7 @@ compat = get_module('distlib.compat')
 import logging
 logger = logging.getLogger(__name__)
 
+import glob
 import urllib2
 from base64 import b64encode
 
@@ -78,6 +79,59 @@ class PythonLocator(locators.Locator):
 
     def get_distribution_names(self):
         return self._distributions
+
+
+class GlobLocator(locators.Locator):
+
+    def __init__(self, **kwds):
+        #TODO: pass ref to ctx
+        self.distributions = dict()
+        self.url = kwds.pop('url', None)
+        self.ctx = kwds.pop('ctx', None)
+        super(GlobLocator, self).__init__(**kwds)
+
+        if self.url:
+            if not self.url.path.endswith('/'):
+                path = os.path.join(self.url.path, '')
+                self.url = self.url._replace(path=path)
+            potentials = glob.glob(self.url.path)
+            for potential in potentials:
+                path = os.path.join(potential, metadata.METADATA_FILENAME)
+                if not os.path.exists(path):
+                    continue
+
+                # EggInfoDistribution?
+                node = self.ctx.path.make_node(potential)
+                pydist = metadata.Metadata(path=path)
+                #NOTE: what if assigned Node here...?
+                pydist.source_url = node.path_from(self.ctx.srcnode)
+                dist = database.Distribution(metadata=pydist)
+                info = self.distributions[dist.name] = {
+                    dist.metadata.version: dist,
+                    }
+
+                dist_node = self.ctx.bldnode.make_node(str(node))
+                dist_path = dist_node.abspath()
+                if not os.path.exists(dist_path):
+                    link = node.path_from(self.ctx.bldnode)
+                    try:
+                        # clear broken symlinks
+                        os.unlink(dist_path)
+                    except OSError:
+                        pass
+                    finally:
+                        os.symlink(link, dist_path)
+
+    def _get_project(self, name):
+        if name not in self.distributions:
+            return dict()
+
+        info = self.distributions[name]
+        return info
+
+    def get_distribution_names(self):
+        names = self.distributions.viewkeys()
+        return names
 
 
 #TODO: custom aggregating locator
@@ -141,7 +195,27 @@ def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
                 return dist
             ctx.zippy_dist_get = dist_get
 
-            ctx.aggregating_locator = locators.AggregatingLocator(
+            ctx.locators = list()
+            for locator_str in env.opt['locator']:
+                locator_url = compat.urlsplit(locator_str)
+                if not locator_url.scheme:
+                    locator_url = locator_url._replace(scheme='glob')
+                locator_name = locator_url.scheme.title() + 'Locator'
+
+                try:
+                    locator = globals()[locator_name](
+                        url=locator_url,
+                        ctx=ctx,
+                        )
+                except KeyError:
+                    raise ValueError('missing: {0}.{1} ({2})'.format(
+                        __name__,
+                        locator_name,
+                        locator_str,
+                        ))
+
+                ctx.locators.append(locator)
+            ctx.locators += [
                 # eg. extern/sources/*.pydist.json
                 JSONDirectoryLocator(env.top_xsrc, recursive=False),
                 # eg. http://hg.python.org/cpython/archive/tip.zip
@@ -150,12 +224,18 @@ def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
                 locators.JSONLocator(),
                 # eg. https://pypi.python.org/simple/uWSGI/
                 locators.SimpleScrapingLocator(env.api_pypi, timeout=3.0),
+                ]
+
+            params = dict(
                 # scheme here applies to the loose matching of dist version.
                 # currently, most pypi dists are not PEP 426/440 compatible.
                 # *DOES NOT* apply to returned [2.x] metadata!
                 scheme='legacy',
                 # return the first dist found in the stack and stop searching!
                 merge=False,
+                )
+            ctx.aggregating_locator = locators.AggregatingLocator(
+                *ctx.locators, **params
                 )
             ctx.dependency_finder = locators.DependencyFinder(
                 ctx.aggregating_locator,
