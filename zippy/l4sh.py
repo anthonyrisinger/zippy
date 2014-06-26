@@ -103,6 +103,10 @@ def l4sh(compiler, objects, output_filename, output_dir=None,
             _h = _o
         if _h == _o:
             _obs.append(_o)
+        try:
+            os.link
+        except AttributeError:
+            os.link = __import__('posix').link
         os.link(o, _o_lock)
         os.rename(_o_lock, _o)
 

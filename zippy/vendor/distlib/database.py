@@ -191,9 +191,8 @@ class DistributionPath(object):
         #FIXME: UPSTREAM
         #TODO: memoize
         _dot_re = re.compile('[.]{2,}')
-        _alnum_re = re.compile('[^0-9A-Za-z]+')
         _alnumdot_re = re.compile('[^0-9A-Za-z.]+')
-        name = _alnum_re.sub('-', name)
+        name = _alnumdot_re.sub('-', name)
         name = name.strip('-').replace('-', '_')
         version = version.replace(' ', '.')
         version = _dot_re.sub('.', version)
