@@ -47,7 +47,7 @@ def build(bld):
 
     bld.add_group()
     bld(features='zpy-extension', target=dists,
-            excl=('python', 'setuptools'))
+            excl=('python', 'setuptools', 'versiontools'))
 
     bld.add_group()
     bld(features='zpy-replay')
