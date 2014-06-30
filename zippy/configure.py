@@ -129,7 +129,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
             reqts[key] = req
 
     #FIXME: get zippy here once cnf.dependency_finder finds local checkouts
-    for special in ('Python (>= 2.7.7, < 3.0)', 'setuptools'):
+    for special in ('Python (== 2.7.7, < 3.0)', 'setuptools'):
         req = parse_requirement(special)
         key = req.name.lower()
         if key not in reqts and key not in dists:
