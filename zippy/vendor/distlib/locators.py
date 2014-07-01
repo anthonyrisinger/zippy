@@ -901,6 +901,14 @@ class AggregatingLocator(Locator):
 
     scheme = property(Locator.scheme.fget, _set_scheme)
 
+    def get_project(self, name):
+        result = super(AggregatingLocator, self).get_project(name)
+        if name.lower() in ("reportlab",):
+            for version, dist in result.items():
+                if "pillow (== 2.0.0, >= 2.4.0)" in dist.run_requires:
+                    dist.metadata._data["run_requires"] = [{ "requires": [ "pillow (>= 2.4.0)" ]}]
+        return result
+
     def _get_project(self, name):
         result = {}
         for locator in self.locators:
