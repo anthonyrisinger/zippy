@@ -95,6 +95,10 @@ def create_wheel(cache_path):
 
     sys.argv[:] = (
         'setup.py'
+        '\0egg_info'
+        '\0--no-svn-revision'
+        '\0--no-date'
+        '\0--tag-build='
         '\0build'
         '\0--build-base={paths[buildbase]}'
         '\0--executable=python'
