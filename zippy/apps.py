@@ -86,6 +86,13 @@ def create_wheel(cache_path):
         '__package__': None,
         })
 
+    # fake bdist_wheel for packages that try to be too fancy
+    class _wheel(type(sys)):
+        def bdist_wheel(*args, **kwargs):
+            pass
+    sys.modules['wheel'] = _wheel('wheel')
+    sys.modules['wheel.bdist_wheel'] = _wheel('wheel.bdist_wheel')
+
     sys.argv[:] = (
         'setup.py'
         '\0build'
