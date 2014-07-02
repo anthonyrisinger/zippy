@@ -369,10 +369,16 @@ class ZPyTask_Update(ZPyTaskBase):
         """disable unused/broken C modules; allow sqlite3 to load extensions
         """
         #TODO: needs upstreaming!
-        dis = ['_ctypes_test', '_hotshot', '_testcapi', '_tkinter',
-                'audioop', 'linuxaudiodev', 'nis', 'ossaudiodev', 'xxsubtype']
-        #FIXME: parser module built very early... disable for now
-        dis += ['parser']
+        dis = [
+            '_ctypes_test',
+            '_testcapi',
+            '_tkinter',
+            'audioop',
+            'linuxaudiodev',
+            'nis',
+            'ossaudiodev',
+            'xxsubtype',
+            ]
         patterns = [
             (r"(disabled_module_list *=).*$",            r"\g<1> %r" % dis),
             #NOTE: python3 has --enable-loadable-sqlite-extensions

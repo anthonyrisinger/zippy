@@ -46,7 +46,7 @@ def l4sh(compiler, objects, output_filename, output_dir=None,
     _hashp = pth.join(_l4sh, '.objects')
     _path = pth.join(_l4sh, _name)
     _sig = pth.join(_path, '.sha1sums')
-    _out = _path + '.o'
+    _out = _path + '.so.o'
     _symi = 'init%s' % _name.rsplit('.', 1)[-1]
     _symo = '%s%s' % (
             ('tini' if '.' in _name else 'init'),
