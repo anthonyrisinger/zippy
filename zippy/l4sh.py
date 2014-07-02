@@ -29,6 +29,10 @@ def l4sh(compiler, objects, output_filename, output_dir=None,
          export_symbols=None, debug=0, extra_preargs=None,
          extra_postargs=None, build_temp=None, target_lang=None):
     from pprint import pprint as pp
+    try:
+        os.link
+    except AttributeError:
+        os.link = __import__('posix').link
     compiler = compiler or default_compiler
     pth = os.path
     bld = ''
@@ -103,10 +107,6 @@ def l4sh(compiler, objects, output_filename, output_dir=None,
             _h = _o
         if _h == _o:
             _obs.append(_o)
-        try:
-            os.link
-        except AttributeError:
-            os.link = __import__('posix').link
         os.link(o, _o_lock)
         os.rename(_o_lock, _o)
 
@@ -118,11 +118,16 @@ def l4sh(compiler, objects, output_filename, output_dir=None,
 
     #...write Setup fragment
     setup_file = pth.join(_path, 'Setup')
+    setup_libs = gen_lib_options(
+        compiler,
+        library_dirs,
+        runtime_library_dirs,
+        libraries + compiler.libraries,
+        )
     with open(setup_file, 'w') as fd:
-        fd.write(' '.join(
-            [_name] + gen_lib_options(compiler, library_dirs,
-                runtime_library_dirs, libraries + compiler.libraries)
-            ))
+        setup_line = [_name] + setup_libs
+        setup_line = ' '.join(setup_line)
+        fd.write(setup_line)
         fd.write('\n')
 
     return setup_file
