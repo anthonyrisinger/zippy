@@ -1,17 +1,16 @@
-From b274d13dfd50778a59fbcefe52202275a794902f Mon Sep 17 00:00:00 2001
-From: C Anthony Risinger <anthony.risinger@corvisa.com>
-Date: Mon, 17 Jun 2013 10:48:37 -0500
-Subject: [PATCH] support -fvisibility=hidden
-
-Signed-off-by: C Anthony Risinger <anthony.risinger@corvisa.com>
----
- Include/pyport.h              | 30 +++++++++++++++---------------
- Modules/_json.c               |  2 +-
- Modules/cjkcodecs/cjkcodecs.h |  2 +-
- Python/getargs.c              |  2 +-
- setup.py                      |  2 +-
- 5 files changed, 19 insertions(+), 19 deletions(-)
-
+diff --git a/Include/node.h b/Include/node.h
+index 9f6760c..2cde3b9 100644
+--- a/Include/node.h
++++ b/Include/node.h
+@@ -21,7 +21,7 @@ PyAPI_FUNC(int) PyNode_AddChild(node *n, int type,
+                                       char *str, int lineno, int col_offset);
+ PyAPI_FUNC(void) PyNode_Free(node *n);
+ #ifndef Py_LIMITED_API
+-Py_ssize_t _PyNode_SizeOf(node *n);
++PyAPI_FUNC(Py_ssize_t) _PyNode_SizeOf(node *n);
+ #endif
+ 
+ /* Node access functions */
 diff --git a/Include/pyport.h b/Include/pyport.h
 index 85e852f..e8c80ec 100644
 --- a/Include/pyport.h
@@ -93,32 +92,47 @@ index 85e852f..e8c80ec 100644
  #endif
  #ifndef DL_IMPORT
  #       define DL_IMPORT(RTYPE) RTYPE
+diff --git a/Modules/_hotshot.c b/Modules/_hotshot.c
+index df8a7f9..4f726dd 100644
+--- a/Modules/_hotshot.c
++++ b/Modules/_hotshot.c
+@@ -1604,7 +1604,7 @@ static PyMethodDef functions[] = {
+ };
+ 
+ 
+-void
++PyMODINIT_FUNC
+ init_hotshot(void)
+ {
+     PyObject *module;
 diff --git a/Modules/_json.c b/Modules/_json.c
-index 13f5816..1474490 100644
+index c913409..3b0bdbf 100644
 --- a/Modules/_json.c
 +++ b/Modules/_json.c
-@@ -2407,7 +2407,7 @@ PyDoc_STRVAR(module_doc,
+@@ -2391,7 +2391,7 @@ static PyMethodDef speedups_methods[] = {
+ PyDoc_STRVAR(module_doc,
  "json speedups\n");
  
- void
--init_json(void)
-+__attribute__((visibility("default"))) init_json(void)
+-void
++PyMODINIT_FUNC
+ init_json(void)
  {
      PyObject *m;
-     PyScannerType.tp_new = PyType_GenericNew;
 diff --git a/Modules/cjkcodecs/cjkcodecs.h b/Modules/cjkcodecs/cjkcodecs.h
-index 7e8390a..59e8d56 100644
+index 7e8390a..ac84eab 100644
 --- a/Modules/cjkcodecs/cjkcodecs.h
 +++ b/Modules/cjkcodecs/cjkcodecs.h
-@@ -386,7 +386,7 @@ errorexit:
+@@ -386,8 +386,8 @@ errorexit:
  }
  #endif
  
 -#define I_AM_A_MODULE_FOR(loc)                                          \
-+#define I_AM_A_MODULE_FOR(loc) __attribute__((visibility("default")))                                          \
-     void                                                                \
+-    void                                                                \
++#define I_AM_A_MODULE_FOR(loc) \
++    PyMODINIT_FUNC                                                      \
      init_codecs_##loc(void)                                             \
      {                                                                   \
+         PyObject *m = Py_InitModule("_codecs_" #loc, __methods);\
 diff --git a/Python/getargs.c b/Python/getargs.c
 index 81a2721..59f2055 100644
 --- a/Python/getargs.c
@@ -133,10 +147,10 @@ index 81a2721..59f2055 100644
  PyAPI_FUNC(int) _PyArg_Parse_SizeT(PyObject *, char *, ...);
  PyAPI_FUNC(int) _PyArg_ParseTuple_SizeT(PyObject *, char *, ...);
 diff --git a/setup.py b/setup.py
-index 716f08e..c9204b6 100644
+index 2b4119a..8109bc0 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -1975,7 +1975,7 @@ class PyBuildExt(build_ext):
+@@ -2024,7 +2024,7 @@ class PyBuildExt(build_ext):
  
                  # Pass empty CFLAGS because we'll just append the resulting
                  # CFLAGS to Python's; -g or -O2 is to be avoided.
@@ -145,6 +159,3 @@ index 716f08e..c9204b6 100644
                        % (ffi_builddir, ffi_srcdir, " ".join(config_args))
  
                  res = os.system(cmd)
--- 
-1.8.3
-
