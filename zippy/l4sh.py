@@ -110,6 +110,17 @@ def l4sh(compiler, objects, output_filename, output_dir=None,
         os.link(o, _o_lock)
         os.rename(_o_lock, _o)
 
+    #FIXME: MUST *fully* link clibs else other objects cannot link against the
+    # resultant libpython.a without *explicitly* linking the clib... again!
+    libdirs = [build_temp] + library_dirs
+    for libname in libraries + compiler.libraries:
+        libpath = compiler.find_library_file(libdirs, libname)
+        if libpath and libpath.startswith(build_temp):
+            libdir, libbase = pth.split(libpath)
+            libdest = pth.join(_path, libbase)
+            os.link(libpath, libdest)
+            library_dirs.append(_path)
+
     #...link final target
     os.system(_x_ldi.format(mkargs(_obs)))
 
