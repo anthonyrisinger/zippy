@@ -369,7 +369,7 @@ class ZPyTask_Update(ZPyTaskBase):
         """disable unused/broken C modules; allow sqlite3 to load extensions
         """
         #TODO: needs upstreaming!
-        dis = ['_bsddb', '_ctypes_test', '_hotshot', '_testcapi', '_tkinter',
+        dis = ['_ctypes_test', '_hotshot', '_testcapi', '_tkinter',
                 'audioop', 'linuxaudiodev', 'nis', 'ossaudiodev', 'xxsubtype']
         #FIXME: parser module built very early... disable for now
         dis += ['parser']
@@ -490,7 +490,7 @@ class ZPyTask_Update(ZPyTaskBase):
         """
         lib = buf.abspath()
         drop_any = set()
-        drop_top = set(('lib-tk', 'idlelib', 'bsddb')) | drop_any
+        drop_top = set(('lib-tk', 'idlelib')) | drop_any
         for ent in drop_top:
             shutil.rmtree(pth.join(lib, ent), ignore_errors=True)
         if not drop_any:
