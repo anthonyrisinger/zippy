@@ -214,6 +214,7 @@ def init_builtins():
         import __builtin__ as builtins
 
     builtins.pp = deferred(builtin_pp, builtins)
+    builtins.pf = deferred(builtin_pf, builtins)
     builtins.pl = deferred(builtin_pl, builtins)
     builtins.I = deferred(builtin_I, builtins)
 
@@ -273,6 +274,21 @@ def builtin_pp(builtins):
 
     builtins.pp = pp
     return pp
+
+
+def builtin_pf(builtins):
+    try:
+        from pprint import pformat
+    except ImportError:
+        pformat = repr
+
+    def pf(*args, **kwds):
+        if len(args) == 1:
+            (args,) = args
+        return pformat(args, **kwds)
+
+    builtins.pf = pf
+    return pf
 
 
 def builtin_pl(builtins):
