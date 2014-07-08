@@ -361,6 +361,7 @@ def configure(cnf):
         #'-fuse-ld=gold',
         #FIXME: this should be with other profile opts, not here!
         #'-fprofile-correction',
+        '-fno-common',
         '-fstack-protector',
         '-fvisibility=hidden',
         '-Wcoverage-mismatch',
