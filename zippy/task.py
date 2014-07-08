@@ -686,6 +686,13 @@ class ZPyTask_Distribution(ZPyTaskBase):
         if not pth.exists(pth.join(self.cwd, metadata.METADATA_FILENAME)):
             return rv
 
+        dlre = zpy.opt['with_dynamic_load'] or None
+        if dlre:
+            dlre = '({0})'.format('|'.join(dlre))
+            dlre = re.compile(dlre)
+            if dlre.match(dist.key):
+                env.env['ZIPPY_CONFIG_WITH_DYNAMIC_LOAD'] = 'x'
+
         rv |= command(
             '{zpy.PYTHON}'
             '\0-m'

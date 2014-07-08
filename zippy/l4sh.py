@@ -150,7 +150,8 @@ if ZIPPY_CONFIG is not None:
         from zippy import json
         with open(ZIPPY_CONFIG, mode='rU') as fp:
             ZIPPY_CONFIG = json.load(fp)
-        def link_shared_object(*args, **kwds):
-            setup_file = l4sh(*args, **kwds)
-            return unixccompiler.CCompiler.link_shared_object(*args, **kwds)
-        unixccompiler.UnixCCompiler.link_shared_object = link_shared_object
+        if 'ZIPPY_CONFIG_WITH_DYNAMIC_LOAD' not in env:
+            def link_shared_object(*args, **kwds):
+                setup_file = l4sh(*args, **kwds)
+                return unixccompiler.CCompiler.link_shared_object(*args, **kwds)
+            unixccompiler.UnixCCompiler.link_shared_object = link_shared_object

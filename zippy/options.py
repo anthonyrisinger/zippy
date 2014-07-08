@@ -48,3 +48,10 @@ def options(opt):
             default=list(),
             help='prepends *Locator(URI) to the resolver',
             )
+    grp.add_option(
+            '--with-dynamic-load',
+            metavar='REGEX',
+            action='append',
+            default=list(),
+            help="matching projects' modules left out core python",
+            )
