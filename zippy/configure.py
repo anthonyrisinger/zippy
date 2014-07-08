@@ -276,7 +276,16 @@ def configure(cnf):
         cnf.fatal('ident MUST be alphanumeric: %r' % _ident)
 
     zpy.dist = dict()
+    zpy.variant_name = cnf.variant
+    zpy.variant_file = cnf.variant + Build.CACHE_SUFFIX
     zpy.landmark = '{0}.{1}.json'.format(__package__, _ident)
+
+    zpy.bld_name = str(cnf.bldnode)
+    zpy.bld_path = cnf.bldnode.path_from(cnf.path)
+    zpy.bld_landmark = pth.join(zpy.bld_path, 'config.json')
+    zpy.bld_cache_name = str(cnf.cachedir)
+    zpy.bld_cache_path = cnf.cachedir.path_from(cnf.path)
+    zpy.bld_cache_file = pth.join(zpy.bld_cache_path, zpy.variant_file)
 
     dirs = set((
         ('cache', None),

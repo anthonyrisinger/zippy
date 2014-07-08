@@ -84,7 +84,6 @@ class PythonLocator(locators.Locator):
 class GlobLocator(locators.Locator):
 
     def __init__(self, **kwds):
-        #TODO: pass ref to ctx
         self.nodes = dict()
         self.distributions = dict()
         self.url = kwds.pop('url', None)
