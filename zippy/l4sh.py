@@ -144,8 +144,12 @@ def l4sh(compiler, objects, output_filename, output_dir=None,
     return setup_file
 
 
-if 'ZIPPY_BUILD' in env:
+ZIPPY_CONFIG = env.get('ZIPPY_CONFIG')
+if ZIPPY_CONFIG is not None:
     if '-fprofile-generate' not in env.get('CFLAGS', ''):
+        from zippy import json
+        with open(ZIPPY_CONFIG, mode='rU') as fp:
+            ZIPPY_CONFIG = json.load(fp)
         def link_shared_object(*args, **kwds):
             setup_file = l4sh(*args, **kwds)
             return unixccompiler.CCompiler.link_shared_object(*args, **kwds)

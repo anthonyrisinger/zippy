@@ -366,6 +366,7 @@ def configure(cnf):
         '-Wcoverage-mismatch',
         ]
     _exports = {
+        'ZIPPY_CONFIG': pth.abspath(zpy.buffer.name),
         'ZIPPY_BUILD': zpy.tstamp,
         'UWSGI_USE_DISTUTILS': 'x',
         'LANG': 'en_US.UTF-8',
