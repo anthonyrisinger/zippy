@@ -44,8 +44,9 @@ class ZPyCtx_Configure(Configure.ConfigurationContext):
             #...user never called cnf.zpy_requirements()
             self.zpy_requirements(*zpy.opt['requirements'])
             #...save the config for `install`
-            zpy_file = self.variant + Build.CACHE_SUFFIX
-            zpy.store(pth.join(self.cachedir.abspath(), zpy_file))
+            zpy.store(zpy.bld_cache_file)
+            #...update JSON config
+            zpy.store(zpy.bld_landmark)
         return rc
 
 
