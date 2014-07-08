@@ -412,6 +412,36 @@ class ZPyTask_Update(ZPyTaskBase):
             buf = pat.sub(sub, buf)
         return buf
 
+    @run('pycrypto', 'src/stream_template.c')
+    def run(self, buf):
+        patterns = [
+            (r"^void", r"PyMODINIT_FUNC"),
+            ]
+        for pat, sub in patterns:
+            pat = re.compile(pat, flags=re.MULTILINE)
+            buf = pat.sub(sub, buf)
+        return buf
+
+    @run('pycrypto', 'src/block_template.c')
+    def run(self, buf):
+        patterns = [
+            (r"^void", r"PyMODINIT_FUNC"),
+            ]
+        for pat, sub in patterns:
+            pat = re.compile(pat, flags=re.MULTILINE)
+            buf = pat.sub(sub, buf)
+        return buf
+
+    @run('pycrypto', 'src/hash_template.c')
+    def run(self, buf):
+        patterns = [
+            (r"^void", r"PyMODINIT_FUNC"),
+            ]
+        for pat, sub in patterns:
+            pat = re.compile(pat, flags=re.MULTILINE)
+            buf = pat.sub(sub, buf)
+        return buf
+
     @run('python (>= 2)', 'Modules/main.c')
     def run(self, buf):
         """export Py_GetArgcArgv"""
