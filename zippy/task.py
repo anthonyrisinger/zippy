@@ -157,14 +157,15 @@ class _ZPyTask(ZPyTaskBase):
                 ret |= app(self)
                 continue
 
+            kwds = dict()
+            if bld.zero_log:
+                kwds = {'stdout': None, 'stderr': -2}
             app = app.format(**locals())
             ret |= self.exec_command(
                     app.strip('\0').split('\0'),
                     cwd=self.cwd,
                     env=env.env or None,
-                    #TODO: use tee handler for term + logs?
-                    #stdout=None,
-                    #stderr=-2,
+                    **kwds
                     )
 
         return ret

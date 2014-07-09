@@ -41,6 +41,46 @@ locators.Locator.open = open
 del open
 
 
+class ContextZeroLog(object):
+
+    def __init__(self, op, cls=None):
+        self.oper = 'zero_oper_' + op
+        self.noop = 'zero_noop_' + op
+        if cls:
+            setattr(cls, self.oper, getattr(cls, op, None))
+
+    def __get__(self, obj, cls):
+        if obj is None:
+            return self
+
+        if obj.zero_log:
+            return getattr(obj, self.noop)
+
+        return getattr(obj, self.oper)
+
+    def __set__(self, obj, attr):
+        if obj.zero_log:
+            return None
+
+        return setattr(obj, self.oper, attr)
+
+def zero_log(self):
+    if hasattr(self, 'options'):
+        return self.options.zero_log
+
+    if hasattr(self, 'env'):
+        return self.zpy.opt['zero_log']
+
+    return False
+Context.Context.zero_log = property(zero_log)
+del zero_log
+
+Context.Context.zero_noop_logger = None
+Context.Context.logger = ContextZeroLog('logger', Context.Context)
+#Context.Context.zero_noop_msg = lambda *a, **k: None
+#Context.Context.msg = ContextZeroLog('msg', Context.Context)
+
+
 class PythonLocator(locators.Locator):
 
     _distributions = frozenset(('Python',))

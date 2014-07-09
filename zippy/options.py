@@ -55,3 +55,10 @@ def options(opt):
             default=list(),
             help="matching projects' modules left out core python",
             )
+    grp.add_option(
+            '--zero-log',
+            metavar='BOOL',
+            action='store_true',
+            default=False,
+            help="do not create log files",
+            )
