@@ -470,6 +470,9 @@ class ZPyTask_Update(ZPyTaskBase):
             (r"_(MODOBJS)_", r"\g<0>\n\g<1>+=$(wildcard %s)" % l4sh),
             (r"(-D(EXEC_)?PREFIX)='[^']*'", r"\g<1>='progpath' %s" % dlm),
             (r"-fprofile-(generate|use)",   r"\g<0>=$(PR0F)"),
+            # workaround issue where make automatically re-exports stuff from
+            # the Makefile if already exported(?), which mangles PYTHONPATH
+            (r"PROFILE_TASK=", r"\g<0> -E "),
             ]
         for pat, sub in patterns:
             pat = re.compile(pat, flags=re.MULTILINE)
