@@ -321,9 +321,6 @@ class ZPyTask_Requirements(ZPyTaskBase):
             pyconfig = pth.join(out_path, 'Include', 'pyconfig.h')
             if not pth.lexists(pyconfig):
                 os.symlink('../pyconfig.h', pyconfig)
-        if dist.key == 'zippy':
-            if not pth.lexists(out_path):
-                os.symlink('..', out_path)
 
         return 0
 
