@@ -159,7 +159,9 @@ class GlobLocator(locators.Locator):
 
         info = self.distributions[name]
         node, dist_node = self.nodes[name]
-        dist_path = dist_node.abspath()
+        # normalize symlink to lowercase the link name
+        dist_base, dist_path = os.path.split(str(dist_node.abspath()))
+        dist_path = os.path.join(dist_base, dist_path.lower())
         if not os.path.exists(dist_path):
             link = node.path_from(self.ctx.bldnode)
             try:
