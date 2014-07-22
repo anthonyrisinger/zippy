@@ -1,0 +1,61 @@
+diff --git a/Modules/main.c b/Modules/main.c
+index ef9b245..2a0d4f1 100644
+--- a/Modules/main.c
++++ b/Modules/main.c
+@@ -258,6 +258,46 @@ Py_Main(int argc, char **argv)
+     orig_argc = argc;           /* For Py_GetArgcArgv() */
+     orig_argv = argv;
+ 
++    char **new_argv = NULL;
++    char *new_argv_buf = NULL;
++    if(argc > 0){
++        int n = 0;
++        size_t l = 0;
++        char *p = strrchr(argv[0], '/');
++        if (p == NULL) {
++            p = argv[0];
++        }
++        else {
++            p++;
++        };
++        if (strncmp(p, "python", 6) != 0) {
++            for (n=0; n<argc; n++) {
++                l += strlen(argv[n]) + 1;
++            }
++            char *z = (char *)calloc(strlen(p) + 3, sizeof(char));
++            strcat(z, "-m");
++            strcat(z, p);
++            while (p = strrchr(z + 1, '-')) {
++                *p = '.';
++            }
++            l += strlen(z) + 1;
++            new_argv = (char **)calloc(argc + 1, sizeof(char *));
++            new_argv_buf = (char *)calloc(l, sizeof(char));
++            new_argv[0] = new_argv_buf;
++            strncpy(new_argv[0], argv[0], strlen(argv[0]) + 1);
++            new_argv[1] = new_argv[0] + strlen(new_argv[0]) + 1;
++            strncpy(new_argv[1], z, strlen(z) + 1);
++            for (n=1; n<argc; n++) {
++                new_argv[n + 1] = new_argv[n] + strlen(new_argv[n]) + 1;
++                strncpy(new_argv[n + 1], argv[n], strlen(argv[n]) + 1);
++            }
++        }
++    }
++    if (new_argv != NULL) {
++        argv = new_argv;
++        argc++;
++    }
++
+ #ifdef RISCOS
+     Py_RISCOSWimpFlag = 0;
+ #endif
+@@ -691,8 +731,7 @@ Py_Main(int argc, char **argv)
+ /* Make the *original* argc/argv available to other modules.
+    This is rare, but it is needed by the secureware extension. */
+ 
+-void
+-Py_GetArgcArgv(int *argc, char ***argv)
++PyAPI_FUNC(void) Py_GetArgcArgv(int *argc, char ***argv)
+ {
+     *argc = orig_argc;
+     *argv = orig_argv;

@@ -440,18 +440,6 @@ class ZPyTask_Update(ZPyTaskBase):
             buf = pat.sub(sub, buf)
         return buf
 
-    @run('python (>= 2)', 'Modules/main.c')
-    def run(self, buf):
-        """export Py_GetArgcArgv"""
-        zpy = self.generator.bld.zpy
-        patterns = [
-            (r"void\nPy_GetArgcArgv", r"PyAPI_FUNC(void) Py_GetArgcArgv"),
-            ]
-        for pat, sub in patterns:
-            pat = re.compile(pat, flags=re.MULTILINE)
-            buf = pat.sub(sub, buf)
-        return buf
-
     @run('python (>= 2)', 'Misc/python-config.in')
     def run(self, buf):
         """@EXENAME@ -> #!python"""
