@@ -2,6 +2,11 @@
   "author": "C Anthony Risinger", 
   "author-email": "c@anthonyrisinger.com", 
   "extensions": {
+    "python.commands": {
+      "wrap_console": {
+        "zippy": "xacto:main"
+      }
+    }, 
     "python.details": {
       "classifiers": [
         "Development Status :: 3 - Alpha", 
@@ -22,6 +27,13 @@
   "generator": "distlib (0.1.9)", 
   "metadata_version": "2.0", 
   "name": "zippy", 
+  "run_requires": [
+    {
+      "requires": [
+        "xacto"
+      ]
+    }
+  ], 
   "summary": "Python App/Installer Generator", 
   "version": "0.6.1"
 }

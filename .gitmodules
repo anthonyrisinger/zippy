@@ -1,0 +1,4 @@
+[submodule "extern/library/xacto"]
+	path = extern/library/xacto
+	url = https://github.com/xtfxme/xacto.git
+	branch = master
