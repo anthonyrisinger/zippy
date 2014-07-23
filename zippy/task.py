@@ -12,6 +12,8 @@ from collections import defaultdict
 from os import path as pth
 import distutils
 import codecs
+import pipes
+import stat
 
 import waflib
 from waflib import Utils, Logs
@@ -152,17 +154,43 @@ class _ZPyTask(ZPyTaskBase):
         self._cache_prof = pth.join(zpy.cache_tmp, 'prof-%s' % self._key)
 
         ret = 0
-        for app in Utils.to_list(self.app):
-            if not isinstance(app, basestring):
-                ret |= app(self)
-                continue
+        with open(pth.join(self.cwd, 'zippy.sh'), mode='a') as fp:
+            fd = fp.fileno()
+            fstat = os.fstat(fd)
+            fmode = fstat.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+            os.fchmod(fd, fmode)
 
-            kwds = dict()
-            if bld.zero_log:
-                kwds = {'stdout': None, 'stderr': -2}
-            app = app.format(**locals())
-            ret |= self.exec_command(
-                    app.strip('\0').split('\0'),
+            if fp.tell() == 0:
+                fp.write('#!/bin/bash\n\n')
+            fp.write('cd ' + pipes.quote(self.cwd) + '\n')
+            fp.write('unset $(compgen -e)' + '\n\n')
+            for k,v in sorted(env.env.iteritems()):
+                v = pipes.quote(v)
+                fp.write('export {0}={1}\n'.format(k, v))
+            fp.write('\n')
+
+            for app in Utils.to_list(self.app):
+                if not isinstance(app, basestring):
+                    fp.write('# ' + str(app))
+                    ret |= app(self)
+                    continue
+
+                kwds = dict()
+                if bld.zero_log:
+                    kwds = {'stdout': None, 'stderr': -2}
+
+                larg = None
+                app = app.format(**locals())
+                app = app.strip('\0').split('\0')
+                for arg in map(pipes.quote, app):
+                    if larg is not None:
+                        fp.write(' \\\n    ')
+                    fp.write(arg)
+                    larg = arg
+                fp.write('\n\n')
+
+                ret |= self.exec_command(
+                    app,
                     cwd=self.cwd,
                     env=env.env or None,
                     **kwds
