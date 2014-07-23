@@ -45,7 +45,7 @@ def options(opt):
             '--locator',
             metavar='URL',
             action='append',
-            default=list(),
+            default=['glob:extern/library/*'],
             help='prepends *Locator(URI) to the resolver',
             )
     grp.add_option(
