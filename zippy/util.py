@@ -208,10 +208,10 @@ def _executable_to_exportable(name):
         for k,v in x.iteritems():
             if k == export:
                 # FOUND! return the translated name
-                return v
+                return (k, v)
 
     # return the original if all else fails
-    return name
+    return (None, name)
 
 
 def _run_module_as_main(mod_name, alter_argv=True):
@@ -219,9 +219,15 @@ def _run_module_as_main(mod_name, alter_argv=True):
     import operator
     import runpy
 
+    export = None
     # special case -m@ means sys.executable does not start with "python"
     if mod_name == '@':
-        mod_name = _executable_to_exportable(mod_name)
+        export, mod_name = _executable_to_exportable(mod_name)
+    # really for xacto, but useful on it's own
+    sys.export = type('export', (tuple,), {
+        'key': export,
+        'entry': mod_name,
+        })()
 
     # extension to the standard -m functionality supporting
     # setuptools/metadata2.0 targets, eg. -m package.module:function
@@ -231,21 +237,6 @@ def _run_module_as_main(mod_name, alter_argv=True):
         mod_attr = operator.attrgetter(mod_attr)
         fun = mod_attr(mod_imp)
         return fun()
-
-    #TODO: handle names with `.` and without `.py`
-    if mod_name.startswith('bin.'):
-        m_bin = sys.modules.get('bin')
-        if m_bin is None:
-            m_bin = type(sys)('bin')
-            m_bin = sys.modules[m_bin.__name__] = m_bin
-            m_bin.__path__ = [sys.executable + '/bin']
-            m_bin.__file__ = m_bin.__path__[0] + '/__init__.py'
-        if not hasattr(m_bin, '__loader__'):
-            loader = sys.path_importer_cache.get(sys.executable)
-            if loader is None:
-                loader = zipimport.zipimporter(sys.executable)
-                sys.path_importer_cache[sys.executable] = loader
-            m_bin.__loader__ = loader
 
     return runpy._run_module_as_main_orig(mod_name, alter_argv)
 
