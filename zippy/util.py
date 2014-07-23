@@ -136,6 +136,7 @@ def site(module, ident):
     name = 'site_' + ident
     sys.modules[name] = module
     module.__name__ = name
+    module.ident = ident
     reload(module)
 
     if building:
@@ -169,9 +170,67 @@ def site(module, ident):
     return module
 
 
+def _executable_to_exportable(name):
+    #FIXME: distlib?
+    if sys.flags.no_site:
+        return name
+
+    import site
+    from zippy import json
+
+    export = os.path.basename(sys.executable)
+    landmark = '{0}.{1}.json'.format(__package__, site.ident)
+    config = os.path.join(os.path.dirname(os.__file__), landmark)
+    try:
+        config = os.__loader__.get_data(config)
+    except AttributeError:
+        with open(config) as fp:
+            config = fp.read()
+    config = json.loads(config)
+
+    # the output binary name is postfixed: zippy-app-{ident}
+    if export == config.get('bld_zippy_name'):
+        export = 'zippy'
+
+    for x in config.get('dist').values() or tuple():
+        x = x.get('extensions')
+        if not x:
+            continue
+
+        x = x.get('python.commands')
+        if not x:
+            continue
+
+        x = x.get('wrap_console')
+        if not x:
+            continue
+
+        for k,v in x.iteritems():
+            if k == export:
+                # FOUND! return the translated name
+                return v
+
+    # return the original if all else fails
+    return name
+
+
 def _run_module_as_main(mod_name, alter_argv=True):
     import zipimport
+    import operator
     import runpy
+
+    # special case -m@ means sys.executable does not start with "python"
+    if mod_name == '@':
+        mod_name = _executable_to_exportable(mod_name)
+
+    # extension to the standard -m functionality supporting
+    # setuptools/metadata2.0 targets, eg. -m package.module:function
+    if ':' in mod_name:
+        mod_imp, mod_attr = mod_name.split(':', 1)
+        mod_imp = __import__(mod_imp, fromlist=['*'])
+        mod_attr = operator.attrgetter(mod_attr)
+        fun = mod_attr(mod_imp)
+        return fun()
 
     #TODO: handle names with `.` and without `.py`
     if mod_name.startswith('bin.'):

@@ -289,6 +289,10 @@ def configure(cnf):
     zpy.bld_cache_path = cnf.cachedir.path_from(cnf.path)
     zpy.bld_cache_file = pth.join(zpy.bld_cache_path, zpy.variant_file)
 
+    bld_zippy = cnf.bldnode.make_node('zippy-app-{0}'.format(_ident))
+    zpy.bld_zippy_name = str(bld_zippy)
+    zpy.bld_zippy_path = bld_zippy.path_from(cnf.path)
+
     dirs = set((
         ('cache', None),
         ('xsrc', 'extern/sources'),

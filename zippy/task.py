@@ -450,7 +450,7 @@ class ZPyTask_Update(ZPyTaskBase):
         """libpythonX.Y.a object glob; default PREFIX to sys.executable
         """
         zpy = self.generator.bld.zpy
-        dlm = '-DLANDMARK=\'"zippy.%s.json"\'' % zpy.identifier
+        dlm = '-DLANDMARK=\'"{0}"\''.format(zpy.landmark)
         l4sh = '../*/l4sh/*.o'.format(
             **locals()
             )

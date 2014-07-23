@@ -10,7 +10,7 @@ index ef9b245..2a0d4f1 100644
 +    char *new_argv_buf = NULL;
 +    if(argc > 0){
 +        int n = 0;
-+        size_t l = 0;
++        size_t l = 4;
 +        char *p = strrchr(argv[0], '/');
 +        if (p == NULL) {
 +            p = argv[0];
@@ -22,19 +22,19 @@ index ef9b245..2a0d4f1 100644
 +            for (n=0; n<argc; n++) {
 +                l += strlen(argv[n]) + 1;
 +            }
-+            char *z = (char *)calloc(strlen(p) + 3, sizeof(char));
-+            strcat(z, "-m");
-+            strcat(z, p);
-+            while (p = strrchr(z + 1, '-')) {
-+                *p = '.';
-+            }
-+            l += strlen(z) + 1;
++            //char *z = (char *)calloc(strlen(p) + 3, sizeof(char));
++            //strcat(z, "-m");
++            //strcat(z, p);
++            //while (p = strrchr(z + 1, '-')) {
++            //    *p = '.';
++            //}
++            //l += strlen(z) + 1;
 +            new_argv = (char **)calloc(argc + 1, sizeof(char *));
 +            new_argv_buf = (char *)calloc(l, sizeof(char));
 +            new_argv[0] = new_argv_buf;
 +            strncpy(new_argv[0], argv[0], strlen(argv[0]) + 1);
 +            new_argv[1] = new_argv[0] + strlen(new_argv[0]) + 1;
-+            strncpy(new_argv[1], z, strlen(z) + 1);
++            strncpy(new_argv[1], "-m@", 4);
 +            for (n=1; n<argc; n++) {
 +                new_argv[n + 1] = new_argv[n] + strlen(new_argv[n]) + 1;
 +                strncpy(new_argv[n + 1], argv[n], strlen(argv[n]) + 1);
