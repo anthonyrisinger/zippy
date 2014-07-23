@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 from waflib import ConfigSet
+from waflib import Utils
 from zippy import json
 
 
@@ -45,11 +46,22 @@ def _eat_your_pickles(module=(lambda x: x).__module__):
 
 
 def buffer(self, filename=None):
-    mark = filename or self.table['bld_landmark']
-    buf = self.buffer_cache.get(mark)
-    if buf is None and mark.endswith('.json'):
-        buf = self.buffer_cache[mark] = open(mark, mode='w+b')
-    return buf
+    filename = Utils.to_list(filename)
+    if filename is None:
+        filename = [
+            self.table[x]
+            for x in (
+                'bld_landmark',
+                'o_landmark',
+                )
+            if x in self.table
+            ]
+    for mark in filename:
+        buf = self.buffer_cache.get(mark)
+        if buf is None and mark.endswith('.json'):
+            buf = self.buffer_cache[mark] = open(mark, mode='w+b')
+        if buf:
+            yield buf
 ConfigSet.ConfigSet.get_buffer = buffer
 ConfigSet.ConfigSet.buffer_cache = dict()
 ConfigSet.ConfigSet.buffer = property(buffer)
@@ -58,28 +70,30 @@ del buffer
 
 load_config = ConfigSet.ConfigSet.load
 def load(self, filename=None):
-    fp = self.get_buffer(filename)
-    if not fp:
-        load_config(self, filename)
-        return
-
     #FIXME: upstream!
-    self.table = json.load(fp)
-    fp.seek(0)
-    return
+    for fp in self.get_buffer(filename):
+        fp.seek(0)
+        self.table = json.load(fp)
+        fp.seek(0)
+        return
+    # only here if no active/available buffers
+    return load_config(self, filename)
 ConfigSet.ConfigSet.load = load
 del load
 
 
 store_config = ConfigSet.ConfigSet.store
 def store(self, filename=None):
-    fp = self.get_buffer(filename)
-    if not fp:
-        store_config(self, filename)
-        return
-
-    json.dump(self.table, fp)
-    fp.seek(0)
-    return
+    legacy = (filename is not None)
+    for fp in self.get_buffer(filename):
+        legacy = False
+        fp.seek(0)
+        fp.truncate()
+        json.dump(self.table, fp)
+        fp.write('\n')
+        fp.seek(0)
+    # only here if no active/available buffers
+    if legacy:
+        return store_config(self, filename)
 ConfigSet.ConfigSet.store = store
 del store

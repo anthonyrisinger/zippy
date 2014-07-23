@@ -238,6 +238,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
     zpy.o_lib_py = pth.join(zpy.o_lib, zpy.py_ver2)
     zpy.o_lib_py_site = pth.join(zpy.o_lib_py, 'site-packages')
     zpy.o_inc_py = pth.join(zpy.o_inc, zpy.py_ver2)
+    zpy.o_landmark = pth.join(zpy.o_lib_py, zpy.landmark)
     Utils.check_dir(zpy.o_lib_py_site)
 
     _pybuilddir = 'build/lib.%s-%s' % (
@@ -367,7 +368,7 @@ def configure(cnf):
         '-Wcoverage-mismatch',
         ]
     _exports = {
-        'ZIPPY_CONFIG': pth.abspath(zpy.buffer.name),
+        'ZIPPY_CONFIG': pth.abspath(zpy.bld_landmark),
         'ZIPPY_BUILD': zpy.tstamp,
         'UWSGI_USE_DISTUTILS': 'x',
         'LANG': 'en_US.UTF-8',

@@ -816,6 +816,8 @@ class ZPyTask_Final(ZPyTaskBase):
         zpy = bld.zpy
         py = bld.py
 
+        zpy.store()
+
         if 0:#not self.env.opt['debug']:
             #FIXME: prevent from running twice on accident?
             app = [zpy.STRIP, '--strip-all', zpy.O_UWSGI]
