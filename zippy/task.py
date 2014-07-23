@@ -816,6 +816,7 @@ class ZPyTask_Final(ZPyTaskBase):
         zpy = bld.zpy
         py = bld.py
 
+        # write out the final zippy*.json(s)
         zpy.store()
 
         if 0:#not self.env.opt['debug']:

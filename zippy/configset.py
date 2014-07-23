@@ -90,7 +90,6 @@ def store(self, filename=None):
         fp.seek(0)
         fp.truncate()
         json.dump(self.table, fp)
-        fp.write('\n')
         fp.seek(0)
     # only here if no active/available buffers
     if legacy:
