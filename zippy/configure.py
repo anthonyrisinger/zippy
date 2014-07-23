@@ -369,7 +369,7 @@ def configure(cnf):
         '-fno-common',
         '-fstack-protector',
         '-fvisibility=hidden',
-        '-Wcoverage-mismatch',
+        '-Wno-error=coverage-mismatch',
         ]
     _exports = {
         'ZIPPY_CONFIG': pth.abspath(zpy.bld_landmark),
