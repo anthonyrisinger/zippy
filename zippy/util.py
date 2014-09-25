@@ -29,6 +29,7 @@ def py_v(_p_xyz=None, v=None, _cache=dict()):
     import platform
 
     v = v or platform.python_version_tuple()
+    v = tuple(str(x).strip('+') for x in v)
     _p_xyz = str(_p_xyz).lower()
     _key = (_p_xyz, tuple(map(int, v)))
     if _key in _cache:
