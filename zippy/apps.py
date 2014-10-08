@@ -198,6 +198,7 @@ def create_wheel(cache_path):
 
     # [over]write metadata 2.x
     pydist.write(path='pydist.json')
+    pydist.write(os.path.join(distinfo, 'METADATA'), legacy=True)
     shutil.copy2('pydist.json', os.path.join(distinfo, 'pydist.json'))
 
     whl = wheel.Wheel()
