@@ -360,10 +360,12 @@ class ZPyTask_Patch(ZPyTaskBase):
     after = []
 
     x, vars = Task.compile_fun(' '.join([
-        '${PATCH}',
-        '--reject-file=-',
-        '-Np1',
-        '-i',
+        '${GIT}',
+        # effectively disables git commands *requiring* a repo and prevents
+        # git from doing nothing in the event it's within an unrelated repo
+        '--git-dir=',
+        'apply',
+        '--whitespace=nowarn',
         '${SRC[0].abspath()}',
         ]))
 

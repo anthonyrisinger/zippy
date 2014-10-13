@@ -410,7 +410,6 @@ def configure(cnf):
         'objcopy',
         'git',
         'ld',
-        'patch',
         'strip',
         ))
     map(cnf.find_program, sorted(progs))
