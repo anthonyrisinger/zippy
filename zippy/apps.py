@@ -133,6 +133,16 @@ def create_wheel(cache_path):
         shutil.rmtree(distinfo)
         return
 
+    #FIXME: recompute the version from dist.egg-info; glob for now
+    if not os.path.isdir(egginfo):
+        import glob
+        egginfo_glob = os.path.join(ctx['sections']['purelib'], '*')
+        # fixup the name
+        for egginfo in glob.glob(egginfo_glob):
+            if egginfo.endswith('.egg-info'):
+                ctx['paths']['egginfo'] = egginfo
+                break
+
     # ensure exports are correct in case they differ from index-metadata
     # this happens when custom builds add new wrap_console scripts, etc
     entry_points = os.path.join(egginfo, 'entry_points.txt')
