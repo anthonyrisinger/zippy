@@ -160,9 +160,10 @@ def create_wheel(cache_path):
                 'gui_scripts': 'wrap_gui',
                 'prebuilt': 'prebuilt',
                 }
-            ep_map = pydist.dictionary
-            ep_map = ep_map.setdefault('extensions', dict())
-            ep_map = ep_map.setdefault('python.commands', dict())
+            extensions = pydist.dictionary.setdefault('extensions', dict())
+            extensions.setdefault('python.exports', dict())
+            extensions.setdefault('python.commands', dict())
+            ep_map = extensions['python.commands']
             try:
                 ep_new = read_exports(fp, conv=conv)
             except MissingSectionHeaderError:
@@ -178,8 +179,10 @@ def create_wheel(cache_path):
                 fp.seek(0)
                 ep_new = read_exports(fp, conv=conv)
 
+            exports = dict()
             for k in ep_new:
                 if k not in ep_trans:
+                    exports[k] = ep_new[k]
                     continue
 
                 k2 = ep_trans[k]
@@ -187,12 +190,32 @@ def create_wheel(cache_path):
                 if k2 != 'prebuilt':
                     kill.update(ep_new[k].keys())
 
+            # update python.exports
+            if exports:
+                extensions['python.exports'].update(exports)
+
             # check for accidental overlap with prebuilt (bad metadata)
             prebuilt = ep_map.get('prebuilt')
             if prebuilt:
                 ep_map['prebuilt'] = [p for p in prebuilt if p not in kill]
                 if not ep_map['prebuilt']:
                     del ep_map['prebuilt']
+
+            #TODO: impl zippy.pkg_resources
+            # write out entry_points.txt for legacy plugin discovery
+            if extensions['python.exports']:
+                exports = extensions['python.exports']
+                ep_out = os.path.join(distinfo, 'entry_points.txt')
+                with open(ep_out, mode='w') as fp2:
+                    for ep_sect, ep_dict in exports.iteritems():
+                        fp2.write('[{0}]\n'.format(ep_sect))
+                        for ep_info in ep_dict.iteritems():
+                            fp2.write('{} = {}\n'.format(*ep_info))
+
+            if not extensions['python.exports']:
+                del extensions['python.exports']
+            if not extensions['python.commands']:
+                del extensions['python.commands']
     except IOError:
         pass
 
