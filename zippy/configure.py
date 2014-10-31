@@ -115,10 +115,11 @@ def zpy_requirements(cnf, *nodes, **ctx):
                 continue
 
             key = req.name.lower()
-            if key in reqts:
+            if key in reqts and req.constraints:
                 #FIXME: handle extras/url
                 # merge requirements
-                constraints = reqts[key].constraints + req.constraints
+                constraints = reqts[key].constraints or list()
+                constraints.extend(req.constraints)
                 constraints = ', '.join(' '.join(c) for c in constraints)
                 spec = '{0} ({1})'.format(req.name, constraints)
                 req = parse_requirement(spec)
