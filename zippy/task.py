@@ -267,7 +267,19 @@ class ZPyTask_Requirements(ZPyTaskBase):
         if url.scheme and url.path and url.path != path:
             path, message = urllib.urlretrieve(url.geturl(), path)
 
-        if pth.isfile(path):
+        if url.path and pth.isdir(url.path):
+            # symlink local dist checkout
+            local_path = pth.join(zpy.top, url.path)
+            local_path = pth.abspath(local_path)
+            local_sym = pth.relpath(local_path, bld_path)
+            try:
+                # clear broken symlinks
+                os.unlink(out_path)
+            except OSError:
+                pass
+            finally:
+                os.symlink(local_sym, out_path)
+        elif pth.isfile(path):
             _zip = ('.zip',)
             _whl = ('.whl',)
             _tar = tuple(

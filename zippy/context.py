@@ -136,12 +136,13 @@ class GlobLocator(locators.Locator):
                 self.url = self.url._replace(path=path)
             potentials = glob.glob(self.url.path)
             for potential in potentials:
+                potential = os.path.abspath(potential)
                 path = os.path.join(potential, metadata.METADATA_FILENAME)
                 if not os.path.exists(path):
                     continue
 
                 # EggInfoDistribution?
-                node = self.ctx.path.make_node(potential)
+                node = self.ctx.root.make_node(potential)
                 pydist = metadata.Metadata(path=path)
                 #NOTE: what if assigned Node here...?
                 pydist.source_url = node.path_from(self.ctx.srcnode)
@@ -157,21 +158,9 @@ class GlobLocator(locators.Locator):
         if name not in self.distributions:
             return dict()
 
-        info = self.distributions[name]
-        node, dist_node = self.nodes[name]
-        # normalize symlink to lowercase the link name
-        dist_base, dist_path = os.path.split(str(dist_node.abspath()))
-        dist_path = os.path.join(dist_base, dist_path.lower())
-        if not os.path.exists(dist_path):
-            link = node.path_from(self.ctx.bldnode)
-            try:
-                # clear broken symlinks
-                os.unlink(dist_path)
-            except OSError:
-                pass
-            finally:
-                os.symlink(link, dist_path)
-        return info
+        #FIXME: self.node is probably cruft now
+        dists = self.distributions[name]
+        return dists
 
     def get_distribution_names(self):
         names = self.distributions.viewkeys()
