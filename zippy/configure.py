@@ -158,17 +158,16 @@ def zpy_requirements(cnf, *nodes, **ctx):
     hits, probs = cnf.dependency_finder.find(anonymous)
     hits.discard(anonymous)
     for prob in list(probs):
-        if prob[0] != 'unsatisfied':
+        if prob[0] == 'cantreplace':
             probs.discard(prob)
-            continue
-
-        if prob[1].startswith('dateutil '):
+            for r in prob[3]:
+                probs.add((prob[0], r))
+        elif prob[0] == 'unsatisfied' and prob[1].startswith('dateutil '):
             # bogus dist (should be python-dateutil) referenced by tastypie?
             probs.discard(prob)
-            continue
 
     if probs:
-        problems = list()
+        problems = defaultdict(list)
         for typ, spec in probs:
             req = parse_requirement(spec)
             req = reqts.get(req.name.lower(), req)
@@ -183,9 +182,16 @@ def zpy_requirements(cnf, *nodes, **ctx):
                     constraint = req.constraints[i]
                 if constraint:
                     problem += ' ({0} {1})'.format(*constraint)
-                problems.append(problem)
-        problem_str = '\n    '.join([''] + problems)
-        cnf.fatal('unsatisfied requirements: {0}'.format(problem_str))
+                problems[typ].append(problem)
+        problem_str = list()
+        for problem_key in sorted(problems):
+            problem_str.append(
+                'dependency failure ({0}):'.format(problem_key),
+                )
+            for problem_val in problems[problem_key]:
+                problem_str.append('    {}'.format(problem_val))
+        problem_str = '\n'.join(problem_str)
+        cnf.fatal(problem_str)
 
     dists.update(hits)
     zpy.dist.update(
