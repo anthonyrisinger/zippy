@@ -351,6 +351,9 @@ class Locator(object):
             if slist:
                 logger.debug('sorted list: %s', slist)
                 result = versions[slist[-1]]
+        if result:
+            #FIXME: UPSTREAM
+            result.weak = (not r.constraints)
         if result and r.extras:
             result.extras = r.extras
         self.matcher = None
@@ -1077,7 +1080,8 @@ class DependencyFinder(object):
             matcher = self.get_matcher(s)
             if not matcher.match(provider.version):
                 unmatched.add(s)
-        if unmatched:
+        #FIXME: UPSTREAM
+        if unmatched and not other.weak:
             # can't replace other with provider
             problems.add(('cantreplace', provider, other,
                           frozenset(unmatched)))
@@ -1139,12 +1143,19 @@ class DependencyFinder(object):
                 raise DistlibException('Unable to locate %r' % requirement)
             logger.debug('located %s', odist)
         dist.requested = True
+        #FIXME: UPSTREAM
+        dist.weak = False
         problems = set()
         todo = set([dist])
         install_dists = set([odist])
         while todo:
             dist = todo.pop()
             name = dist.key     # case-insensitive
+            #FIXME: UPSTREAM
+            if name in self.dists_by_name and dist.weak:
+                # do not process fulfilled weak deps!
+                continue
+
             if name not in self.dists_by_name:
                 self.add_distribution(dist)
             else:
