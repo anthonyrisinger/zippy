@@ -1198,6 +1198,8 @@ class DependencyFinder(object):
                     name = p.key
                     if name not in self.dists_by_name:
                         self.reqts.setdefault(p, set()).add(r)
+                        #FIXME: UPSTREAM
+                        self.add_distribution(p)
                     else:
                         other = self.dists_by_name[name]
                         if other != p:
