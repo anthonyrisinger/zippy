@@ -444,8 +444,14 @@ def normalize_pydist(info):
 
     remaps = list()
     for key in keyset:
-        local_value = local_meta.pop(key, None)
-        index_value = index_meta.pop(key, None)
+        try:
+            index_value = index_meta.pop(key)
+        except KeyError:
+            index_value = None
+        try:
+            local_value = local_meta.pop(key)
+        except KeyError:
+            local_value = index_value
 
         if local_value is None and index_value is None:
             continue
