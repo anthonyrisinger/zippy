@@ -123,7 +123,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
                 constraints = ', '.join(' '.join(c) for c in constraints)
                 spec = '{0} ({1})'.format(req.name, constraints)
                 req = parse_requirement(spec)
-                req.origin = reqts[key].origins
+                req.origins = reqts[key].origins
 
             if not hasattr(req, 'origins'):
                 req.origins = list()
