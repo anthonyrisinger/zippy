@@ -68,7 +68,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
 
     #FIXME: drop this once cnf.dependency_finder handles direct refs
     # current directory is zippy
-    urls = ['.']
+    urls = [zpy.top]
     reqts = dict()
     dists = set()
 
