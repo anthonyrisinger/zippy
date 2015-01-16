@@ -94,10 +94,7 @@ def zpy_requirements(cnf, *nodes, **ctx):
                 dist.requested = True
                 dists.add(dist)
 
-                link = pth.relpath(url, bld_abspath)
-                dest = pth.join(bld_abspath, dist.key)
-                if not pth.exists(dest):
-                    os.symlink(link, dest)
+                dist.metadata.source_url = url
 
                 #TODO: build_requires/test_requires/etc/?
                 urldata = dist.run_requires
@@ -110,9 +107,16 @@ def zpy_requirements(cnf, *nodes, **ctx):
             if not spec or spec[0]=='#':
                 continue
 
+            # handle urls a bit nicer
+            if '://' in spec:
+                spec = '__anonymous__ (from {0})'.format(spec)
+
             req = parse_requirement(spec)
             if not req:
                 continue
+
+            if req.url:
+                req = cnf.git_locator.add_hint(req, cnf)
 
             key = req.name.lower()
             if key in reqts and req.constraints:

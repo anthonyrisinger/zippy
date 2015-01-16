@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 
 import glob
 import urllib2
+import subprocess
+from urlparse import urlsplit
+from urlparse import urlunsplit
+from urlparse import parse_qsl
+from hashlib import sha256
 from base64 import b64encode
 
 
@@ -119,6 +124,73 @@ class PythonLocator(locators.Locator):
 
     def get_distribution_names(self):
         return self._distributions
+
+
+class GitLocator(locators.Locator):
+
+    def __init__(self, **kwds):
+        super(GitLocator, self).__init__(**kwds)
+        self.distributions = dict()
+
+    def _get_project(self, name):
+        if name not in self.distributions:
+            return dict()
+
+        dists = self.distributions[name]
+        return dists
+
+    def get_distribution_names(self):
+        names = self.distributions.viewkeys()
+        return names
+
+    def add_hint(self, req, ctx):
+        url = urlsplit(req.url)
+        qs = dict(parse_qsl(url.fragment))
+        scheme = url.scheme.split('+')
+        if scheme[0] != 'git':
+            return req
+
+        url = url._replace(scheme=scheme[-1], query='', fragment='')
+        source = urlunsplit(url)
+        name = sha256(req.url).hexdigest()[:16]
+        dest = os.path.join(ctx.zpy.top_xsrc, name)
+        meta = dest + '.' + metadata.METADATA_FILENAME
+        if not os.path.exists(dest):
+            subprocess.call([
+                'git',
+                    'clone',
+                        source,
+                        dest,
+                        ])
+            subprocess.call([
+                sys.executable, 'setup.py',
+                    'egg_info',
+                        '--no-svn-revision',
+                        '--no-date',
+                        '--tag-build='
+                        ],
+                cwd=dest,
+                )
+            info = glob.glob(os.path.join(dest, '*.egg-info')).pop()
+            dist = database.EggInfoDistribution(path=info)
+            #FIXME: setting source_url is not working?
+            with open(meta, mode='w') as fp:
+                pydist = dist.metadata.dictionary
+                pydist['source_url'] = os.path.relpath(dest, ctx.zpy.top)
+                json.dump(
+                    fp=fp,
+                    obj=pydist,
+                    ensure_ascii=True,
+                    sort_keys=True,
+                    indent=2,
+                    )
+        meta = metadata.Metadata(path=meta)
+        dist = database.Distribution(metadata=meta)
+        self.distributions[meta.name] = {meta.version: dist}
+        req = database.parse_requirement('{0} (=={1})'.format(
+            meta.name, meta.version,
+            ))
+        return req
 
 
 class GlobLocator(locators.Locator):
@@ -228,7 +300,8 @@ def zpy(ctx, _zpy=ConfigSet.ConfigSet()):
                 return dist
             ctx.zippy_dist_get = dist_get
 
-            ctx.locators = list()
+            ctx.git_locator = GitLocator()
+            ctx.locators = [ctx.git_locator]
             for locator_str in env.opt['locator']:
                 locator_url = compat.urlsplit(locator_str)
                 if not locator_url.scheme:

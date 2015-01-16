@@ -10,6 +10,7 @@ import time, re, shutil, glob
 import urlparse, urllib, zipfile, json
 from collections import defaultdict
 from os import path as pth
+import subprocess
 import distutils
 import codecs
 import pipes
@@ -263,22 +264,57 @@ class ZPyTask_Requirements(ZPyTaskBase):
             name = name[:-4] + '.tar.gz'
         path = pth.join(zpy.top_xsrc, name)
         meta = path + '.' + metadata.METADATA_FILENAME
+        meta_alt = pth.join(url.path, metadata.METADATA_FILENAME)
+        meta_out = pth.join(out_path, metadata.METADATA_FILENAME)
 
         if url.scheme and url.path and url.path != path:
             path, message = urllib.urlretrieve(url.geturl(), path)
 
         if url.path and pth.isdir(url.path):
-            # symlink local dist checkout
-            local_path = pth.join(zpy.top, url.path)
-            local_path = pth.abspath(local_path)
-            local_sym = pth.relpath(local_path, bld_path)
             try:
-                # clear broken symlinks
-                os.unlink(out_path)
-            except OSError:
-                pass
-            finally:
-                os.symlink(local_sym, out_path)
+                git_dir = subprocess.check_output(
+                    ['git', 'rev-parse', '--show-toplevel'], cwd=url.path,
+                    ).strip()
+                # avoid checking out the wrong repo due to nesting; ie. don't
+                # checkout someone's dotfile repo just because they happen to
+                # technically be "under" it
+                if pth.abspath(git_dir) == pth.abspath(url.path):
+                    git_dir = subprocess.check_output(
+                        args=['git', 'rev-parse', '--git-dir'], cwd=url.path,
+                        )
+                    git_dir = pth.join(url.path, git_dir.strip())
+                else:
+                    git_dir = None
+            except subprocess.CalledProcessError:
+                git_dir = None
+            if git_dir:
+                if not pth.exists(out_path):
+                    os.mkdir(out_path)
+                subprocess.call([
+                    'git',
+                        '--git-dir={0}'.format(git_dir),
+                        '--work-tree={0}'.format(out_path),
+                            'checkout-index',
+                                '--all',
+                                '--quiet',
+                                '--force',
+                                ])
+                if pth.exists(meta):
+                    shutil.copy2(meta, meta_out)
+                elif pth.exists(meta_alt):
+                    shutil.copy2(meta_alt, meta_out)
+            else:
+                # symlink local dist checkout
+                local_path = pth.join(zpy.top, url.path)
+                local_path = pth.abspath(local_path)
+                local_sym = pth.relpath(local_path, bld_path)
+                try:
+                    # clear broken symlinks
+                    os.unlink(out_path)
+                except OSError:
+                    pass
+                finally:
+                    os.symlink(local_sym, out_path)
         elif pth.isfile(path):
             _zip = ('.zip',)
             _whl = ('.whl',)
