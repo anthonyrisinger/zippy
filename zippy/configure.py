@@ -400,7 +400,6 @@ def configure(cnf):
         'CXXFLAGS': _cflags,
         'CPPFLAGS': ['-D_FORTIFY_SOURCE=2'],
         'LDFLAGS': ['-Wl,-O1,--sort-common,--as-needed,-z,relro'],
-        'UWSGI_PROFILE' : '_zippy_%s.ini' % _ident,
         }
     if zpy.opt.get('debug'):
         _exports['PYTHONVERBOSE'] = 'x'
@@ -424,45 +423,6 @@ def configure(cnf):
         'strip',
         ))
     map(cnf.find_program, sorted(progs))
-
-    if 'uconf' not in zpy:
-        zpy.uconf = dict()
-
-    for default in (
-        ('json', 1),
-        ('pcre', 1),
-        ('routing', 1),
-        ('ssl', 1),
-        ('xml', 1),
-        ('yaml', 1),
-        ('zeromq', 1),
-
-        ('append_version', _ident),
-        ('plugin_dir', 'lib-dynload-uwsgi'),
-
-        ('locking', 'auto'),
-        ('event', 'auto'),
-        ('timer', 'auto'),
-        ('filemonitor', 'auto'),
-        ('xml_implementation', 'libxml2'),
-        ('yaml_implementation', 'libyaml'),
-        ('malloc_implementation', 'libc'),
-
-        ('plugins', ''),
-        ('embed_files', ''),
-        ('embed_config', ''),
-        ('embedded_plugins', [
-            'cache', 'carbon', 'cheaper_busyness', 'corerouter', 'dumbloop',
-            'fastrouter', 'gevent', 'http', 'logfile', 'logsocket',
-            'mongodblog', 'nagios', 'ping', 'python', 'rawrouter', 'redislog',
-            'router_basicauth', 'router_cache', 'router_http',
-            'router_redirect', 'router_rewrite', 'router_static',
-            'router_uwsgi', 'rpc', 'rrdtool', 'rsyslog', 'signal', 'spooler',
-            'sslrouter', 'symcall', 'syslog', 'transformation_gzip',
-            'transformation_tofile', 'ugreen', 'zergpool',
-            ]),
-        ):
-        zpy.uconf.setdefault(*default)
 
     if not _cache.find_node('bin/ccache'):
         import shutil

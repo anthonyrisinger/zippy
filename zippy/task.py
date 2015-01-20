@@ -624,18 +624,6 @@ class ZPyTask_Update(ZPyTaskBase):
         """
         buf.write(PYTHON_MODULES_SETUP)
 
-    @run('uwsgi (>= 1.9)', 'buildconf/_zippy_%(identifier)s.ini',
-            raw=True, finder='make_node')
-    def run(self, buf):
-        """uwsgi config
-        """
-        lines = ['[uwsgi]']
-        for k, v in sorted(self.generator.bld.zpy.uconf.iteritems()):
-            if isinstance(v, (list, set)):
-                v = ','.join(sorted(v))
-            lines.append('%s=%s' % (k, v))
-        buf.write('\n'.join(lines))
-
     #...RUN RUN RUN! overwrite the decorator with the real impl, no cleanup ;)
     def run(self):
         bld = self.generator.bld
