@@ -131,6 +131,7 @@ class GitLocator(locators.Locator):
     def __init__(self, **kwds):
         super(GitLocator, self).__init__(**kwds)
         self.distributions = dict()
+        self.repos = dict()
 
     def _get_project(self, name):
         if name not in self.distributions:
@@ -145,23 +146,52 @@ class GitLocator(locators.Locator):
 
     def add_hint(self, req, ctx):
         url = urlsplit(req.url)
-        qs = dict(parse_qsl(url.fragment))
         scheme = url.scheme.split('+')
         if scheme[0] != 'git':
             return req
 
+        repo = dict(parse_qsl(url.fragment))
+        if '@' in url.path:
+            path, ref = url.path.rsplit('@', 1)
+            url = url._replace(path=path)
+            if len(ref) < 16 or set(ref) - set('0123456789abcdefABCDEF'):
+                # ref is probably a branch/tag
+                repo.update(ref=ref)
+            else:
+                # ref is a probably a specific commit
+                repo.update(rev=ref)
+
         url = url._replace(scheme=scheme[-1], query='', fragment='')
-        source = urlunsplit(url)
-        name = sha256(req.url).hexdigest()[:16]
+        source = repo['url'] = urlunsplit(url)
+        name = repo['ident'] = sha256(req.url).hexdigest()[:16]
         dest = os.path.join(ctx.zpy.top_xsrc, name)
         meta = dest + '.' + metadata.METADATA_FILENAME
         if not os.path.exists(dest):
-            subprocess.call([
-                'git',
-                    'clone',
-                        source,
-                        dest,
-                        ])
+            if repo.get('rev'):
+                # must clone... cannot use targeted fetch
+                subprocess.call(['git', 'clone', source, dest])
+                subprocess.call(['git', 'checkout', repo['rev']], cwd=dest)
+            else:
+                # refs/HEAD can be targeted directly
+                refspec = '{0}:master'.format(repo.get('ref', 'HEAD'))
+                # create a blank repo
+                subprocess.call(['git', 'init', dest])
+                # rip down the ref we need
+                subprocess.call([
+                    'git',
+                        'fetch',
+                            '--update-head-ok',
+                            '--force',
+                            '--depth=1',
+                            '--no-tags',
+                                source,
+                                refspec,
+                                ],
+                    cwd=dest,
+                    )
+                # refresh the work tree
+                subprocess.call(['git', 'checkout'], cwd=dest)
+            # generate egg-info
             subprocess.call([
                 sys.executable, 'setup.py',
                     'egg_info',
@@ -186,6 +216,8 @@ class GitLocator(locators.Locator):
                     )
         meta = metadata.Metadata(path=meta)
         dist = database.Distribution(metadata=meta)
+        repo.update(egg=meta.name, version=meta.version)
+        self.repos[meta.name] = repo
         self.distributions[meta.name] = {meta.version: dist}
         req = database.parse_requirement('{0} (=={1})'.format(
             meta.name, meta.version,
