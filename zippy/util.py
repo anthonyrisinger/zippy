@@ -322,8 +322,14 @@ def builtin_I(builtins):
             config = load_default_config()
             config.InteractiveShellEmbed = config.TerminalInteractiveShell
             kwds['config'] = config
-        return InteractiveShellEmbed(**kwds)(header=header, stack_depth=2)
+        shell_kwds = {'header': header}
+        shell_kwds.update(default_shell_kwds)
+        shell = InteractiveShellEmbed(**kwds)(**shell_kwds)
+        # the first invocation is one frame deeper due to deferment
+        default_shell_kwds['stack_depth'] = 2
+        return shell
 
+    default_shell_kwds = {'stack_depth': 3}
     builtins.I = I
     return I
 
