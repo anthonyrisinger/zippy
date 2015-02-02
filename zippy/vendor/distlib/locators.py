@@ -1145,6 +1145,8 @@ class DependencyFinder(object):
         dist.requested = True
         #FIXME: UPSTREAM
         dist.weak = False
+        #FIXME: UPSTREAM
+        retry = set()
         problems = set()
         todo = set([dist])
         install_dists = set([odist])
@@ -1162,6 +1164,17 @@ class DependencyFinder(object):
                 #import pdb; pdb.set_trace()
                 other = self.dists_by_name[name]
                 if other != dist:
+                    if dist.key not in retry:
+                        #FIXME: UPSTREAM
+                        # sometimes dists are added to todo before a different
+                        # dist is processed that would have fulfilled the req;
+                        # reprocess the rdepend before attempting a replace.
+                        # best case: rdepend uses an already provided dist
+                        # worst case:  dist gets added to todo again
+                        todo.add(dist.rdepend)
+                        retry.add(dist.key)
+                        continue
+
                     self.try_to_replace(dist, other, problems)
 
             ireqts = dist.run_requires | dist.meta_requires
@@ -1188,6 +1201,8 @@ class DependencyFinder(object):
                     else:
                         n, v = provider.key, provider.version
                         if (n, v) not in self.dists:
+                            #FIXME: UPSTREAM
+                            provider.rdepend = dist
                             todo.add(provider)
                         providers.add(provider)
                         if r in ireqts and dist in install_dists:
